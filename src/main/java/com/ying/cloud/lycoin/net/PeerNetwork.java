@@ -1,87 +1,121 @@
 package com.ying.cloud.lycoin.net;
 
-import com.google.gson.Gson;
-import com.ying.cloud.lycoin.domain.Peer;
-import com.ying.cloud.lycoin.domain.PeerConfig;
+import com.ying.cloud.lycoin.models.*;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.bootstrap.ServerBootstrap;
-import io.netty.channel.Channel;
-import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInitializer;
-import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
-import io.netty.handler.codec.string.StringDecoder;
-import io.netty.handler.codec.string.StringEncoder;
-import java.util.ArrayList;
-import java.util.Collections;
+import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
+import io.netty.handler.codec.LengthFieldPrepender;
+
 import java.util.List;
 
 public class PeerNetwork {
 
-    List<Channel> channels;
     PeerConfig config;
-    public PeerNetwork(PeerConfig config){
-        channels = new ArrayList<>();
-        Collections.synchronizedList(channels);
+
+    private PeerManager peerManager;
+    public PeerNetwork(PeerConfig config, BlockChain chain){
+        peerManager = new PeerManager(chain);
         this.config = config;
     }
 
-    public void setupServer(){
+    public void setupServer() throws Exception {
         ServerBootstrap serverBootstrap = new ServerBootstrap();
 
         NioEventLoopGroup boos = new NioEventLoopGroup();
         NioEventLoopGroup worker = new NioEventLoopGroup();
+
         serverBootstrap
                 .group(boos, worker)
                 .channel(NioServerSocketChannel.class)
                 .childHandler(new ChannelInitializer<NioSocketChannel>() {
+                    @Override
                     protected void initChannel(NioSocketChannel ch) {
-                        ch.pipeline().addLast(new StringDecoder());
-                        ch.pipeline().addLast(new SimpleChannelInboundHandler<String>() {
-                            @Override
-                            protected void channelRead0(ChannelHandlerContext ctx, String msg) {
-                                System.out.println(msg);
-                                ctx.flush();
-                            }
-                        });
+                        System.out.println("accept a socket");
 
-                        channels.add(ch);
+                        ch.config().setAllowHalfClosure(true);
+
+
+                        //ch.pipeline().addLast(new StringEncoder());
+                        ch.pipeline().addLast(new LengthFieldPrepender(4));
+                        ch.pipeline().addLast(new MessageEncoder());
+
+                        ch.pipeline().addLast(new LengthFieldBasedFrameDecoder(1024*500,0,4,0,4));
+                        //ch.pipeline().addLast(new StringDecoder());
+                        ch.pipeline().addLast(new MessageDecoder());
+
+
+
+                        //LengthFieldBasedFrameDecoder
+
+                        //ch.pipeline().addLast(new MessageEncoder());
+                        //ch.pipeline().addLast(new MessageDecoder());
+                        //ch.pipeline().addLast( new LengthFieldPrepender(4));
+                        //ch.pipeline().addLast(new LengthFieldBasedFrameDecoder(1024*500,0,4,0,4));
+                        ch.pipeline().addLast(peerManager);
                     }
-                })
-                .bind(config.getPort());
+                });
 
-        System.out.println("server setup 8000");
+
+
+        serverBootstrap.bind(config.getPort());
+
+        System.out.println("server setup at "+config.getPort());
     }
 
     public void connectNodes(){
+
+        Bootstrap bootstrap = new Bootstrap();
+        NioEventLoopGroup group = new NioEventLoopGroup();
+        bootstrap.group(group)
+                .channel(NioSocketChannel.class).handler(new ChannelInitializer<NioSocketChannel>() {
+            @Override
+            protected void initChannel(NioSocketChannel ch) {
+                System.out.println("accept a socket");
+                ch.config().setAllowHalfClosure(true);
+
+                //ch.pipeline().addLast(new StringEncoder());
+                ch.pipeline().addLast(new LengthFieldPrepender(4));
+                ch.pipeline().addLast(new MessageEncoder());
+
+                ch.pipeline().addLast(new LengthFieldBasedFrameDecoder(1024*500,0,4,0,4));
+                //ch.pipeline().addLast(new StringDecoder());
+                ch.pipeline().addLast(new MessageDecoder());
+
+
+                //ch.pipeline().addLast(new MessageEncoder());
+                //ch.pipeline().addLast(new MessageDecoder());
+                //ch.pipeline().addLast( new LengthFieldPrepender(4));
+                //ch.pipeline().addLast(new LengthFieldBasedFrameDecoder(1024*500,0,4,0,4));
+                ch.pipeline().addLast(peerManager);
+            }
+        });
+
+
         List<Peer> peers = config.getPeers();
         for (int i = 0; i < peers.size(); i++) {
             Peer peer = peers.get(i);
-            Bootstrap bootstrap = new Bootstrap();
-            NioEventLoopGroup group = new NioEventLoopGroup();
-
-            bootstrap.group(group)
-                    .channel(NioSocketChannel.class)
-                    .handler(new ChannelInitializer<Channel>() {
-                        @Override
-                        protected void initChannel(Channel ch) {
-                            ch.pipeline().addLast(new StringEncoder());
-                        }
-                        
-                    });
-
-            Channel channel = bootstrap.connect(peer.getIp(), peer.getPort()).channel();
-            channels.add(channel);
-            System.out.println("connect to "+channel.id());
+            bootstrap.connect(peer.getIp(), peer.getPort());
+            System.out.println("connect to "+peer.getIp()+":"+peer.getPort());
         }
     }
 
-    public void broadcast(){
-        for (int i = 0; i <channels.size(); i++) {
-            channels.get(i).writeAndFlush("hello");
-        }
+    public void BroadcastBlockList(){
+        Message message = new Message();
+        message.setType("blocks");
+        peerManager.broadcast(message);
+    }
+
+    public void BroadcastBlock(Block block){
+        System.out.println("find a block");
+        block.print();
+        Message message = new Message();
+        message.setType("block_find");
+        message.setData(block);
+        peerManager.broadcast(message);
     }
 
 }

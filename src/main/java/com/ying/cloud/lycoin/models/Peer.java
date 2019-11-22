@@ -1,4 +1,4 @@
-package com.ying.cloud.lycoin.domain;
+package com.ying.cloud.lycoin.models;
 
 public class Peer {
     private String ip;

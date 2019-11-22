@@ -1,6 +1,8 @@
-package com.ying.cloud.lycoin.domain;
+package com.ying.cloud.lycoin.models;
 
-public class Block {
+import java.io.Serializable;
+
+public class Block implements Serializable {
     public Long getIndex() {
         return index;
     }
@@ -68,6 +70,16 @@ public class Block {
     private Long difficulty;
     private Long nonce;
 
+    public String getIp() {
+        return ip;
+    }
+
+    public void setIp(String ip) {
+        this.ip = ip;
+    }
+
+    private String ip;
+
 
     public void print(){
         System.out.println("-------------------------");
@@ -85,6 +97,22 @@ public class Block {
         System.out.println(difficulty);
         System.out.print("nonce:");
         System.out.println(nonce);
+        System.out.print("ip:");
+        System.out.println(ip);
         System.out.println("-------------------------");
+    }
+
+    @Override
+    public String toString() {
+        StringBuffer stringBuffer = new StringBuffer();
+        stringBuffer.append("index:"+index+"\n");
+        stringBuffer.append("previousHash:"+previousHash+"\n");
+        stringBuffer.append("hash:"+hash+"\n");
+        stringBuffer.append("data:"+data+"\n");
+        stringBuffer.append("timestamp:"+timestamp+"\n");
+        stringBuffer.append("difficulty:"+difficulty+"\n");
+        stringBuffer.append("nonce:"+nonce+"\n");
+        stringBuffer.append("ip:"+ip+"\n");
+        return stringBuffer.toString();
     }
 }
