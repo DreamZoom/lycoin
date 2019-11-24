@@ -1,12 +1,10 @@
 package com.ying.cloud.lycoin;
 
 import com.google.gson.Gson;
-import com.ying.cloud.lycoin.event.BlockFindEvent;
-import com.ying.cloud.lycoin.event.LycoinDefaultListener;
+import com.ying.cloud.lycoin.event.LycoinEvent;
+import com.ying.cloud.lycoin.event.LycoinEventListener;
 import com.ying.cloud.lycoin.event.LycoinEventManager;
-import com.ying.cloud.lycoin.models.PeerConfig;
 import org.apache.commons.io.FileUtils;
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import java.io.File;
 import java.nio.charset.Charset;
@@ -70,15 +68,33 @@ public class LycoinApplication {
 
             setupHttpServer(context);
 
-            context.getEventManager().addEventListener(new LycoinDefaultListener<BlockFindEvent>(){
+            context.getEventManager().addEventListener(new LycoinEventListener(){
                 @Override
-                public void action(BlockFindEvent event) {
+                public String name() {
+                    return "block";
+                }
+
+                @Override
+                public void action(LycoinEvent event) {
                     System.out.println("find a block");
+                }
+
+            });
+
+            context.getEventManager().addEventListener(new LycoinEventListener() {
+                @Override
+                public String name() {
+                    return "chain";
+                }
+
+                @Override
+                public void action(LycoinEvent event) {
+                    System.out.println("find a chain");
                 }
             });
 
-            BlockFindEvent event =new BlockFindEvent(this);
-            context.getEventManager().fireEvent(event);
+
+            context.getEventManager().fireEvent("block");
 
         }catch (Exception error){
             System.out.println(error.getMessage());

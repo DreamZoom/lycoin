@@ -1,5 +1,6 @@
 package com.ying.cloud.lycoin.event;
 
+
 import java.util.*;
 
 public class LycoinEventManager {
@@ -16,15 +17,26 @@ public class LycoinEventManager {
         listeners.remove(listener);
     }
 
-
-    public synchronized void fireEvent(LycoinEvent event){
+    public synchronized void fireEvent(String eventName){
+       fireEvent(eventName,null);
+    }
+    public synchronized void fireEvent(String eventName,Object data){
+        LycoinEvent event =new LycoinEvent(this,eventName,data);
         Iterator iterator = listeners.iterator();
         while (iterator.hasNext()) {
             LycoinEventListener listener = (LycoinEventListener) iterator.next();
-            if(listener.accept(event)){
+
+            if(accept(listener,event)){
                 listener.action(event);
             }
         }
+    }
+
+    private boolean accept(LycoinEventListener listener,LycoinEvent event) {
+        if(listener.name().equals(event.getEventName())){
+            return true;
+        }
+        return  false;
     }
 
 

@@ -2,7 +2,7 @@ package com.ying.cloud.lycoin.event;
 
 import java.util.EventListener;
 
-public interface LycoinEventListener<TEvent> extends EventListener {
-    boolean accept(LycoinEvent event);
-    void action(TEvent event);
+public interface LycoinEventListener extends EventListener {
+    String name();
+    void action(LycoinEvent event);
 }
