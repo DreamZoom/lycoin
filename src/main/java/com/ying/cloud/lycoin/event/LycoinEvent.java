@@ -18,15 +18,15 @@ public class LycoinEvent extends EventObject {
 
     private String eventName;
 
-    public Object getData() {
+    public Object[] getData() {
         return data;
     }
 
-    public void setData(Object data) {
+    public void setData(Object[] data) {
         this.data = data;
     }
 
-    private Object data;
+    private Object[] data;
     public LycoinEvent(Object source) {
         super(source);
     }
@@ -35,7 +35,7 @@ public class LycoinEvent extends EventObject {
         super(source);
         this.eventName =eventName;
     }
-    public LycoinEvent(Object source,String eventName,Object data) {
+    public LycoinEvent(Object source,String eventName,Object ...data) {
         super(source);
         this.eventName =eventName;
         this.data = data;

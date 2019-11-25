@@ -177,6 +177,20 @@ public class BlockChain {
     }
 
 
+    public synchronized  int size(){
+        return chain.size();
+    }
+
+    public synchronized boolean replace(BlockChain newChain){
+        if(newChain.size()<=0) return false;
+        if(this.size()>newChain.size()) return  false;
+
+        if(!getRoot().getHash().equals(newChain.getRoot().getHash())) return false;
+
+        setChain(newChain.getChain());
+        return  true;
+    }
+
 
     public synchronized  void print(){
         chain.forEach((block)->{block.print();});

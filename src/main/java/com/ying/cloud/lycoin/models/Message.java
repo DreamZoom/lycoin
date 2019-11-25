@@ -33,4 +33,14 @@ public class Message implements Serializable {
 
     private String sign;
     private Object data;
+
+    public Message(){
+    }
+    public Message(String type){
+        this.type = type;
+    }
+    public Message(String type,Object data){
+        this.type = type;
+        this.data=data;
+    }
 }

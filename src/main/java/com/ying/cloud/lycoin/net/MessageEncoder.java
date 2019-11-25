@@ -14,9 +14,7 @@ public class MessageEncoder extends MessageToMessageEncoder<Message> {
     protected void encode(ChannelHandlerContext ctx, Message msg, List<Object> out) {
         Gson gson = new Gson();
         String json= gson.toJson(msg);
-        int size = json.length();
         ByteBuf buf = Unpooled.buffer();
-        //buf.writeInt(size);
         buf.writeBytes(json.getBytes());
         out.add(buf);
     }

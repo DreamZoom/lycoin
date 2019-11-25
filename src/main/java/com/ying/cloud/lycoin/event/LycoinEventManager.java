@@ -17,10 +17,7 @@ public class LycoinEventManager {
         listeners.remove(listener);
     }
 
-    public synchronized void fireEvent(String eventName){
-       fireEvent(eventName,null);
-    }
-    public synchronized void fireEvent(String eventName,Object data){
+    public synchronized void fireEvent(String eventName,Object ...data){
         LycoinEvent event =new LycoinEvent(this,eventName,data);
         Iterator iterator = listeners.iterator();
         while (iterator.hasNext()) {

@@ -11,9 +11,6 @@ import java.util.List;
 public class MessageDecoder extends MessageToMessageDecoder<ByteBuf> {
     @Override
     protected void decode(ChannelHandlerContext ctx, ByteBuf msg, List<Object> out) throws Exception {
-//        int size =msg.getInt(0);
-//        byte[] bytes = new byte[size];
-//        msg.getBytes(4,bytes);
         int size =msg.readableBytes();
         byte[] bytes = new byte[size];
         msg.getBytes(0,bytes);
