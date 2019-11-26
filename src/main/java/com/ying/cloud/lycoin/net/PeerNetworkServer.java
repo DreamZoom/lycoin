@@ -1,7 +1,6 @@
 package com.ying.cloud.lycoin.net;
 
 import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
 import com.ying.cloud.lycoin.LycoinApplicationContext;
 import com.ying.cloud.lycoin.models.*;
 import io.netty.bootstrap.Bootstrap;
@@ -13,8 +12,6 @@ import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
 import io.netty.handler.codec.LengthFieldPrepender;
-
-import java.lang.reflect.Type;
 import java.util.List;
 
 public class PeerNetworkServer {
@@ -135,8 +132,8 @@ public class PeerNetworkServer {
         List<Peer> peers = context.getConfig().getPeers();
         for (int i = 0; i < peers.size(); i++) {
             Peer peer = peers.get(i);
-            bootstrap.connect(peer.getIp(), peer.getPort());
-            System.out.println("connect to "+peer.getIp()+":"+peer.getPort());
+            bootstrap.connect(peer.getIp(), peer.getServerPort());
+            System.out.println("connect to "+peer.getIp()+":"+peer.getServerPort());
         }
     }
 

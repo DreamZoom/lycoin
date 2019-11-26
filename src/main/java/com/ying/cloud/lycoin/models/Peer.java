@@ -11,13 +11,35 @@ public class Peer {
         this.ip = ip;
     }
 
-    public int getPort() {
-        return port;
+
+    public int getServerPort() {
+        return serverPort;
     }
 
-    public void setPort(int port) {
-        this.port = port;
+    public void setServerPort(int serverPort) {
+        this.serverPort = serverPort;
     }
 
-    private int port;
+    private int serverPort;
+
+    public int getRpcPort() {
+        return rpcPort;
+    }
+
+    public void setRpcPort(int rpcPort) {
+        this.rpcPort = rpcPort;
+    }
+
+    private int rpcPort;
+
+    public int getHttpPort() {
+        return httpPort;
+    }
+
+    public void setHttpPort(int httpPort) {
+        this.httpPort = httpPort;
+    }
+
+    private int httpPort;
+
 }

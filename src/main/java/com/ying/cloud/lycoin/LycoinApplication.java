@@ -9,8 +9,11 @@ import com.ying.cloud.lycoin.event.LycoinEventManager;
 import com.ying.cloud.lycoin.models.Block;
 import com.ying.cloud.lycoin.models.BlockChain;
 import com.ying.cloud.lycoin.models.Message;
+import com.ying.cloud.lycoin.models.Peer;
 import com.ying.cloud.lycoin.net.LycoinHttpHandler;
+import com.ying.cloud.lycoin.net.LycoinHttpServer;
 import com.ying.cloud.lycoin.net.PeerNetworkServer;
+import com.ying.cloud.lycoin.utils.HttpUtils;
 import io.netty.channel.ChannelHandlerContext;
 import org.apache.commons.io.FileUtils;
 import org.eclipse.jetty.server.Handler;
@@ -20,6 +23,7 @@ import org.eclipse.jetty.server.handler.DefaultHandler;
 import javax.servlet.ServletContext;
 import java.io.File;
 import java.nio.charset.Charset;
+import java.util.List;
 
 /**
  * Lycoin 币应用容器
@@ -71,17 +75,8 @@ public class LycoinApplication {
     }
 
     public void setupHttpServer(LycoinApplicationContext context){
-        Server server = new Server(8090);
-
-        Handler handler =new LycoinHttpHandler();
-        server.setHandler(handler);
-
-        try{
-           server.start();
-        }
-        catch (Exception err){
-
-        }
+        LycoinHttpServer server =new LycoinHttpServer(context);
+        server.run();
     }
 
     public void  initEventSystem(LycoinApplicationContext context){
@@ -117,11 +112,30 @@ public class LycoinApplication {
                 @Override
                 public void run() {
                     while (true){
-                        Message message =new Message("blocks");
-                        context.getNetwork().broadcast(message);
                         try{
-                            Thread.sleep(1000);
-                        }catch (Exception err){}
+                            List<Peer> peerList =  context.getConfig().getPeers();
+
+                            for (Peer peer:peerList) {
+                                try{
+                                    String chainString = HttpUtils.doGet("http://"+peer.getIp()+":"+peer.getHttpPort()+"?action=blocks");
+                                    BlockChain chain =new Gson().fromJson(chainString,BlockChain.class);
+                                    boolean v = BlockChain.validNewChain(chain.getChain());
+                                    if(v){
+                                        if(context.replace(chain)){
+                                            System.out.println("accept a chain");
+                                            context.fireEvent("replace");
+                                        }
+                                    }
+
+                                }catch (Exception error){
+                                    System.out.println(error.getMessage());
+                                }
+
+                            }
+                            Thread.sleep(2000);
+                        }catch (Exception err){
+                            System.out.println(err.getMessage());
+                        }
                     }
                 }
             }).start();
