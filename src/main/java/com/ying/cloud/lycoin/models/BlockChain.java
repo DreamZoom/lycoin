@@ -191,6 +191,10 @@ public class BlockChain {
         return  true;
     }
 
+    public boolean valid(){
+        return BlockChain.validNewChain(this.chain);
+    }
+
 
     public synchronized  void print(){
         chain.forEach((block)->{block.print();});

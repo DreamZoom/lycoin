@@ -11,20 +11,42 @@ import io.netty.channel.group.ChannelGroup;
 import io.netty.channel.group.DefaultChannelGroup;
 import io.netty.util.concurrent.GlobalEventExecutor;
 
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
+import java.util.ArrayList;
+import java.util.List;
+
 
 @ChannelHandler.Sharable
-public abstract class PeerNetwork extends ChannelInboundHandlerAdapter {
+public  class PeerNetwork extends ChannelInboundHandlerAdapter {
 
     private ChannelGroup channelGroup;
+
+    private List<LycoinMessageHandler> handlers;
 
     LycoinApplicationContext context;
     public PeerNetwork(LycoinApplicationContext context){
         this.context = context;
         this.channelGroup= new DefaultChannelGroup(GlobalEventExecutor.INSTANCE);
+        this.handlers = new ArrayList<>();
     }
 
 
-    public abstract void onReceiveMessage(ChannelHandlerContext ctx,Message message);
+    public void hander(LycoinMessageHandler messageHandler){
+        this.handlers.add(messageHandler);
+    }
+
+
+    public void onReceiveMessage(ChannelHandlerContext ctx,Message message){
+        for (int i = 0; i < handlers.size(); i++) {
+            LycoinMessageHandler handler = this.handlers.get(i);
+            ParameterizedType type = (ParameterizedType)(handler.getClass().getGenericInterfaces()[0]);
+            if(message.getClass().equals(type.getActualTypeArguments()[0])){
+                this.handlers.get(i).handle(ctx,this,message);
+            }
+
+        }
+    }
 
 
     @Override
@@ -46,6 +68,8 @@ public abstract class PeerNetwork extends ChannelInboundHandlerAdapter {
     public void send_message(ChannelHandlerContext ctx,Message message){
         ctx.writeAndFlush(message);
     }
+
+
     public void broadcast(Message message){
         channelGroup.writeAndFlush(message);
     }

@@ -20,53 +20,25 @@ public class PeerNetworkServer {
 
     private PeerNetwork network;
     public PeerNetworkServer(LycoinApplicationContext context){
-        network = new PeerNetwork(context){
-            @Override
-            public void onReceiveMessage(ChannelHandlerContext ctx, Message message) {
-                receive_message_callback(ctx,message);
-            }
-        };
+        network = new PeerNetwork(context);
         this.context = context;
+        network.hander(new LycoinMessageHandler<MessageFindBlock>() {
+            @Override
+            public void handle(ChannelHandlerContext ctx, PeerNetwork network, MessageFindBlock message) {
+                Block block = message.getBlock();
+                Block last = context.getChain().getLast();
+                if(BlockChain.validBlock(last,block)){
+                    context.getChain().addBlock(block);
+                    System.out.println("accept a block");
+                    block.print();
+                    network.broadcast(message);
+                }
+            }
+        });
         context.setNetwork(network);
     }
 
-    public void receive_message_callback(ChannelHandlerContext ctx,Message message){
 
-        Gson gson =new Gson();
-        Message msg=message;
-        System.out.println(msg.getType());
-
-        if(msg.getType().equals("blocks")){
-            msg.setData(context.getChain());
-            msg.setType("blocks_response");
-            network.send_message(ctx,msg);
-        }
-        else if(msg.getType().equals("blocks_response")){
-            Object o = msg.getData();
-            String arr= gson.toJson(o);
-            //Type jsonType = new TypeToken<List<Block>>() {}.getType();
-            BlockChain newChain = gson.fromJson(arr,BlockChain.class);
-            boolean v = BlockChain.validNewChain(newChain.getChain());
-            if(v){
-                if(context.replace(newChain)){
-                    System.out.println("accept a chain");
-                    context.fireEvent("replace");
-                }
-            }
-        }
-        else if(msg.getType().equals("block_find")){
-            Object o = msg.getData();
-            String arr= gson.toJson(o);
-            Block block = gson.fromJson(arr,Block.class);
-            Block last = context.getChain().getLast();
-            if(BlockChain.validBlock(last,block)){
-                context.getChain().addBlock(block);
-                System.out.println("accept a block");
-                block.print();
-                network.broadcast(msg);
-            }
-        }
-    }
 
     public void setup(){
         try{
@@ -129,27 +101,13 @@ public class PeerNetworkServer {
             }
         });
 
+
+
         List<Peer> peers = context.getConfig().getPeers();
         for (int i = 0; i < peers.size(); i++) {
             Peer peer = peers.get(i);
-            bootstrap.connect(peer.getIp(), peer.getServerPort());
-            System.out.println("connect to "+peer.getIp()+":"+peer.getServerPort());
+            ConnectionListener listener = new ConnectionListener(bootstrap,peer.getIp(),peer.getServerPort());
+            bootstrap.connect(peer.getIp(), peer.getServerPort()).addListener(listener);
         }
     }
-
-    public void BroadcastBlockList(){
-        Message message = new Message();
-        message.setType("blocks");
-        network.broadcast(message);
-    }
-
-    public void BroadcastBlock(Block block){
-        System.out.println("find a block");
-        block.print();
-        Message message = new Message();
-        message.setType("block_find");
-        message.setData(block);
-        network.broadcast(message);
-    }
-
 }

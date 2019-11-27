@@ -25,7 +25,7 @@ public class HttpUtils {
 
     }
 
-    public static String doGet(URL url, String encoding) {
+    public static String doGet(URL url, String encoding) throws Exception {
         InputStream in = null;
         InputStreamReader insr = null;
         BufferedReader reader = null;
@@ -225,9 +225,10 @@ public class HttpUtils {
         try {
             URL url = new URL(strURL);
             return doGet(url, encoding);
-        } catch (MalformedURLException e) {
-            e.printStackTrace();
-            throw new RuntimeException(e);
+        } catch (Exception e) {
+            //e.printStackTrace();
+           // throw new RuntimeException(e);
+            return "";
         }
     }
 

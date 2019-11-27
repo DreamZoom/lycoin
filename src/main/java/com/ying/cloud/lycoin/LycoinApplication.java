@@ -3,25 +3,14 @@ package com.ying.cloud.lycoin;
 import com.google.gson.Gson;
 import com.ying.cloud.lycoin.crypto.DefaultHashEncoder;
 import com.ying.cloud.lycoin.crypto.HashEncoder;
-import com.ying.cloud.lycoin.event.LycoinEvent;
-import com.ying.cloud.lycoin.event.LycoinEventListener;
 import com.ying.cloud.lycoin.event.LycoinEventManager;
-import com.ying.cloud.lycoin.models.Block;
-import com.ying.cloud.lycoin.models.BlockChain;
-import com.ying.cloud.lycoin.models.Message;
-import com.ying.cloud.lycoin.models.Peer;
-import com.ying.cloud.lycoin.net.LycoinHttpHandler;
+import com.ying.cloud.lycoin.models.*;
 import com.ying.cloud.lycoin.net.LycoinHttpServer;
 import com.ying.cloud.lycoin.net.PeerNetworkServer;
 import com.ying.cloud.lycoin.utils.HttpUtils;
-import io.netty.channel.ChannelHandlerContext;
 import org.apache.commons.io.FileUtils;
-import org.eclipse.jetty.server.Handler;
-import org.eclipse.jetty.server.Server;
-import org.eclipse.jetty.server.handler.DefaultHandler;
 
-import javax.servlet.ServletContext;
-import java.io.File;
+import java.io.*;
 import java.nio.charset.Charset;
 import java.util.List;
 
@@ -82,14 +71,6 @@ public class LycoinApplication {
     public void  initEventSystem(LycoinApplicationContext context){
         LycoinEventManager eventManager =new LycoinEventManager();
         context.setEventManager(eventManager);
-
-//        context.addEventListener("connected",(event)->{
-//            System.out.println("connected");
-//            PeerNetwork network =(PeerNetwork) event.getData()[0];
-//            ChannelHandlerContext channelHandlerContext = (ChannelHandlerContext) event.getData()[1];
-//            Message message =new Message("blocks");
-//            network.send_message(channelHandlerContext,message);
-//        });
     }
 
 
@@ -119,8 +100,7 @@ public class LycoinApplication {
                                 try{
                                     String chainString = HttpUtils.doGet("http://"+peer.getIp()+":"+peer.getHttpPort()+"?action=blocks");
                                     BlockChain chain =new Gson().fromJson(chainString,BlockChain.class);
-                                    boolean v = BlockChain.validNewChain(chain.getChain());
-                                    if(v){
+                                    if(chain.valid()){
                                         if(context.replace(chain)){
                                             System.out.println("accept a chain");
                                             context.fireEvent("replace");
@@ -128,7 +108,7 @@ public class LycoinApplication {
                                     }
 
                                 }catch (Exception error){
-                                    System.out.println(error.getMessage());
+                                    //System.out.println(error.getMessage());
                                 }
 
                             }
@@ -144,7 +124,8 @@ public class LycoinApplication {
                 Block last = context.getChain().getLast();
                 if(BlockChain.validBlock(last,block)){
                     context.getChain().addBlock(block);
-                    Message message =new Message("block_find",block);
+                    MessageFindBlock message =new MessageFindBlock();
+                    message.setBlock(block);
                     context.getNetwork().broadcast(message);
                 }
                 return  true;
