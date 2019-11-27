@@ -7,7 +7,7 @@ import java.util.Map;
 public class HttpUtils {
     private static final String CHARSET = "UTF-8";
 
-    public static String doGet(String strURL) {
+    public static String doGet(String strURL) throws Exception {
         return doGet(strURL, CHARSET);
     }
 
@@ -19,7 +19,7 @@ public class HttpUtils {
         try {
             URL url = new URL(strURL);
             return doPost(url, map, encoding);
-        } catch (MalformedURLException e) {
+        } catch (Exception e) {
             throw new RuntimeException(e);
         }
 
@@ -58,7 +58,7 @@ public class HttpUtils {
             String str1 = buff.toString();
             return str1;
         } catch (IOException e) {
-            e.printStackTrace();
+            //e.printStackTrace();
             throw new RuntimeException(e);
         }
         finally {
@@ -99,7 +99,7 @@ public class HttpUtils {
         return sb.toString();
     }
 
-    public static String doPost(URL url, Map<String, String> map, String encoding) {
+    public static String doPost(URL url, Map<String, String> map, String encoding) throws Exception {
         BufferedReader reader = null;
         DataOutputStream out = null;
         HttpURLConnection conn = null;
@@ -159,7 +159,7 @@ public class HttpUtils {
                 conn.disconnect();
         }
     }
-    public static String doPost(String strURL, String params, String encoding) {
+    public static String doPost(String strURL, String params, String encoding) throws Exception {
 
         BufferedReader reader = null;
         DataOutputStream out = null;
@@ -221,14 +221,13 @@ public class HttpUtils {
                 conn.disconnect();
         }
     }
-    public static final String doGet(String strURL, String encoding) {
+    public static final String doGet(String strURL, String encoding) throws Exception {
         try {
             URL url = new URL(strURL);
             return doGet(url, encoding);
         } catch (Exception e) {
-            //e.printStackTrace();
-           // throw new RuntimeException(e);
-            return "";
+           // e.printStackTrace();
+            throw new RuntimeException(e);
         }
     }
 

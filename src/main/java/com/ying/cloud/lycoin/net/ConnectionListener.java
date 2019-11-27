@@ -24,12 +24,13 @@ public class ConnectionListener implements ChannelFutureListener {
     public void operationComplete(ChannelFuture future) throws Exception {
         if (!future.isSuccess()) {
             final EventLoop loop = future.channel().eventLoop();
+            ConnectionListener listener =this;
             loop.schedule(new Runnable() {
                 @Override
                 public void run() {
                     System.err.println("服务端链接失败，开始重连操作...");
                     //NioSocketChannel address = ((NioSocketChannel)future.channel());
-                    bootstrap.connect(ip,port);
+                    bootstrap.connect(ip,port).addListener(listener);
                 }
             }, 1L, TimeUnit.SECONDS);
         } else {
