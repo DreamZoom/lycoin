@@ -7,7 +7,7 @@ import java.util.List;
 /**
  * 统一配置文件
  */
-public class LycoinConfig {
+public class BlockConfig {
 
     /**
      * 服务提供端口

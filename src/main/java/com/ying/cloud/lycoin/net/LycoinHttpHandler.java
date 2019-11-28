@@ -1,11 +1,10 @@
 package com.ying.cloud.lycoin.net;
 
 import com.google.gson.Gson;
-import com.ying.cloud.lycoin.LycoinApplicationContext;
+import com.ying.cloud.lycoin.LycoinContext;
 import com.ying.cloud.lycoin.models.BlockChain;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.handler.AbstractHandler;
-import org.eclipse.jetty.server.handler.DefaultHandler;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -14,9 +13,9 @@ import java.io.IOException;
 
 public class LycoinHttpHandler extends AbstractHandler {
 
-    LycoinApplicationContext context;
+    LycoinContext context;
 
-    public LycoinHttpHandler(LycoinApplicationContext context){
+    public LycoinHttpHandler(LycoinContext context){
         this.context = context;
     }
 

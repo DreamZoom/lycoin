@@ -1,8 +1,15 @@
 package com.ying.cloud.lycoin.net;
 
 import com.google.gson.Gson;
-import com.ying.cloud.lycoin.LycoinApplicationContext;
-import com.ying.cloud.lycoin.models.*;
+import com.ying.cloud.lycoin.LycoinContext;
+import com.ying.cloud.lycoin.message.Message;
+import com.ying.cloud.lycoin.message.MessageBlock;
+import com.ying.cloud.lycoin.message.MessageChain;
+import com.ying.cloud.lycoin.message.MessageHandler;
+import com.ying.cloud.lycoin.models.Block;
+import com.ying.cloud.lycoin.models.BlockChain;
+import com.ying.cloud.lycoin.models.Peer;
+import com.ying.cloud.lycoin.utils.HttpUtils;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelHandlerContext;
@@ -16,34 +23,25 @@ import java.util.List;
 
 public class PeerNetworkServer {
 
-    LycoinApplicationContext context;
+    LycoinContext context;
+    PeerNetwork network ;
 
-    private PeerNetwork network;
-    public PeerNetworkServer(LycoinApplicationContext context){
-        network = new PeerNetwork(context);
+    public PeerNetworkServer(LycoinContext context){
         this.context = context;
-        network.hander(new LycoinMessageHandler<MessageFindBlock>() {
-            @Override
-            public void handle(ChannelHandlerContext ctx, PeerNetwork network, MessageFindBlock message) {
-                Block block = message.getBlock();
-                Block last = context.getChain().getLast();
-                if(BlockChain.validBlock(last,block)){
-                    context.getChain().addBlock(block);
-                    System.out.println("accept a block");
-                    block.print();
-                    network.broadcast(message);
-                }
-            }
-        });
+        network = new PeerNetwork();
         context.setNetwork(network);
-    }
 
+        context.getHandlers().forEach((handler)->{
+            network.handler(handler);
+        });
+    }
 
 
     public void setup(){
         try{
             setupServer();
             setupClients();
+            setupHttpRequest();
             System.out.println("server is setup ");
         }
         catch (Exception error){
@@ -82,7 +80,6 @@ public class PeerNetworkServer {
     }
 
     public void setupClients(){
-
         Bootstrap bootstrap = new Bootstrap();
         NioEventLoopGroup group = new NioEventLoopGroup();
         bootstrap.group(group)
@@ -110,4 +107,35 @@ public class PeerNetworkServer {
             bootstrap.connect(peer.getIp(), peer.getServerPort()).addListener(listener);
         }
     }
+
+    public void setupHttpRequest(){
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                while (true){
+                    try{
+                        List<Peer> peerList =  context.getConfig().getPeers();
+
+                        for (Peer peer:peerList) {
+                            try{
+                                String chainString = HttpUtils.doGet("http://"+peer.getIp()+":"+peer.getHttpPort()+"?action=blocks");
+                                BlockChain chain =new Gson().fromJson(chainString,BlockChain.class);
+                                MessageChain message =new MessageChain();
+                                message.setChain(chain);
+                                network.trigger(message);
+
+                            }catch (Exception error){
+                                //System.out.println(error.getMessage());
+                            }
+                        }
+                        Thread.sleep(2000);
+                    }catch (Exception err){
+                        System.out.println(err.getMessage());
+                    }
+                }
+            }
+        }).start();
+    }
+
+
 }

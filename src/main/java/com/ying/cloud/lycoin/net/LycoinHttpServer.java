@@ -1,13 +1,13 @@
 package com.ying.cloud.lycoin.net;
 
-import com.ying.cloud.lycoin.LycoinApplicationContext;
+import com.ying.cloud.lycoin.LycoinContext;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Server;
 
 public class LycoinHttpServer {
 
-    LycoinApplicationContext context;
-    public LycoinHttpServer(LycoinApplicationContext context){
+    LycoinContext context;
+    public LycoinHttpServer(LycoinContext context){
         this.context = context;
     }
 

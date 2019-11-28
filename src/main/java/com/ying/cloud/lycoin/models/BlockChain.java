@@ -4,6 +4,7 @@ import com.ying.cloud.lycoin.crypto.SHA256;
 import org.apache.commons.codec.binary.BinaryCodec;
 import org.apache.commons.codec.binary.Hex;
 
+import java.io.Serializable;
 import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -24,11 +25,14 @@ public class BlockChain {
     }
 
     private  List<Block> chain;
+    private  List<Block> temp;
     public  BlockChain(){
         chain =new ArrayList<>();
         Collections.synchronizedList(chain);
         Block root = createRoot();
         chain.add(root);
+
+        temp = new ArrayList<>();
     }
 
     private synchronized Block createRoot(){
@@ -191,8 +195,21 @@ public class BlockChain {
         return  true;
     }
 
-    public boolean valid(){
+    public synchronized boolean valid(){
         return BlockChain.validNewChain(this.chain);
+    }
+
+    public synchronized boolean accept(Block block){
+
+
+        Block last = getLast();
+        if(BlockChain.validBlock(last,block)){
+            addBlock(block);
+        }
+        else{
+            temp.add(block);
+        }
+        return  false;
     }
 
 
