@@ -4,11 +4,8 @@ import com.ying.cloud.lycoin.crypto.SHA256;
 import org.apache.commons.codec.binary.BinaryCodec;
 import org.apache.commons.codec.binary.Hex;
 
-import java.io.Serializable;
 import java.net.InetAddress;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 import java.util.function.Function;
 
 public class BlockChain {
@@ -24,15 +21,19 @@ public class BlockChain {
         this.chain.addAll(chain);
     }
 
+    private Block root;
     private  List<Block> chain;
-    private  List<Block> temp;
+    private  List<Branch> branches;
+
+    private HashMap<String,Block> acceptedBlocks;
     public  BlockChain(){
         chain =new ArrayList<>();
         Collections.synchronizedList(chain);
-        Block root = createRoot();
+        root = createRoot();
         chain.add(root);
 
-        temp = new ArrayList<>();
+        branches = new ArrayList<>();
+        acceptedBlocks = new HashMap<>();
     }
 
     private synchronized Block createRoot(){
@@ -123,7 +124,7 @@ public class BlockChain {
         long nonce = 1;
         while (true) {
 
-            Block last = getLast();
+            Block last = getBestLastBlock();
             Block block =new Block();
             block.setIndex(last.getIndex()+1);
             block.setPreviousHash(last.getHash());
@@ -154,16 +155,23 @@ public class BlockChain {
         }
 
         String hash = calculateHash(block);
-        if(!block.getHash().equals(hash)) return  false;
+        if(!block.getHash().equals(hash)){
+            return  false;
+        }
 
-        if(!validTimestamp(prev,block)) return  false;
+        if(!validTimestamp(prev,block)) {
+            return false;
+        }
 
 
         return true;
     }
     public synchronized static boolean validTimestamp(Block prev,Block block){
-        return ( block.getTimestamp() - 60 < System.currentTimeMillis())
-                && ( prev.getTimestamp() - 60 < block.getTimestamp() );
+
+        long diff = 60*1000L;
+        long current = System.currentTimeMillis();
+
+        return ( block.getTimestamp() - diff <current ) && ( prev.getTimestamp() - diff < block.getTimestamp() );
     }
     public synchronized static boolean validNewChain(List<Block> chain){
         if(chain.size()<=0){
@@ -201,15 +209,110 @@ public class BlockChain {
 
     public synchronized boolean accept(Block block){
 
+        if(acceptedBlocks.containsKey(block.getHash())) return  false;
 
-        Block last = getLast();
-        if(BlockChain.validBlock(last,block)){
-            addBlock(block);
+        acceptedBlocks.put(block.getHash(),block);
+
+        boolean isAccept =false;
+
+        for (int i = 0; i < branches.size(); i++) {
+            Branch branch = branches.get(i);
+            Block last = branch.getLast();
+            if(BlockChain.validBlock(last,block)){
+                branch.addBlock(block);
+                isAccept = true;
+                break;
+            }
+            if(branch.getHead().equals(block.getHash())){
+               Block root = branch.getRoot();
+               if(BlockChain.validBlock(block,root)){
+                   branch.addheadBlock(block);
+                   isAccept = true;
+                   break;
+               }
+            }
         }
-        else{
-            temp.add(block);
+
+        if(isAccept) return  true;
+
+        /**
+         * 没有被现有分支接受，需要创建新分支。
+         */
+
+        Branch newBranch = new Branch();
+        newBranch.addBlock(block);
+        branches.add(newBranch);
+
+
+        return  true;
+    }
+
+
+    public synchronized Block getBestLastBlock(){
+        Block best = getRoot();
+        for (int i = 0; i < branches.size(); i++) {
+            Branch branch = branches.get(i);
+
+            /**
+             * 检测分支完整性
+             */
+            if(checkBranch(branch)){
+                Block last = branch.getLast();
+                if(last.getIndex()>best.getIndex()){
+                    best = last;
+                }
+            }
+
         }
-        return  false;
+        return best;
+    }
+
+
+    public String getLoseBlock(){
+        List<Branch> loseBranchs = new ArrayList<>();
+        for (int i = 0; i < branches.size(); i++) {
+            Branch branch = branches.get(i);
+
+            /**
+             * 检测分支完整性
+             */
+            if(!checkBranch(branch)){
+                loseBranchs.add(branch);
+            }
+        }
+
+        if(loseBranchs.size()==0){
+            return null;
+        }
+
+        Random r = new Random();
+        int k = r.nextInt(loseBranchs.size());
+
+        return  loseBranchs.get(k).getHead();
+    }
+
+
+    public synchronized  Block findBlock(String hash){
+        if(acceptedBlocks.containsKey(hash)){
+            return  acceptedBlocks.get(hash);
+        }
+        return null;
+    }
+
+    public synchronized boolean  checkBranch(Branch branch){
+        if(branch.getHead().equals(root.getHash())){
+            return  true;
+        }
+        for (int i = 0; i < branches.size(); i++) {
+            if(branches.get(i).hasBlock(branch.getHead())){
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public synchronized void  merge(){
+
     }
 
 

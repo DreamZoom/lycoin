@@ -28,7 +28,6 @@ public class PeerNetwork extends ChannelInboundHandlerAdapter implements IPeerNe
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-        System.out.println(msg.toString());
         Message message = (Message)msg;
         trigger(message);
     }
@@ -54,7 +53,9 @@ public class PeerNetwork extends ChannelInboundHandlerAdapter implements IPeerNe
     }
 
     @Override
-    public void trigger(Message message){
+    public synchronized void trigger(Message message){
+
+
         for (int i = 0; i < handlers.size(); i++) {
             MessageHandler handler = this.handlers.get(i);
             ParameterizedType type = (ParameterizedType)(handler.getClass().getGenericInterfaces()[0]);

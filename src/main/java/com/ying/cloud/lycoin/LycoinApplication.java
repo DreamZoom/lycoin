@@ -4,6 +4,7 @@ package com.ying.cloud.lycoin;
 import com.ying.cloud.lycoin.message.MessageBlock;
 import com.ying.cloud.lycoin.message.MessageChain;
 import com.ying.cloud.lycoin.message.MessageHandler;
+import com.ying.cloud.lycoin.message.MessageRequestBlock;
 import com.ying.cloud.lycoin.models.Block;
 import com.ying.cloud.lycoin.models.BlockChain;
 import com.ying.cloud.lycoin.net.IPeerNetwork;
@@ -21,26 +22,24 @@ public class LycoinApplication extends BlockApplication {
             @Override
             public void handle(IPeerNetwork network, MessageBlock message) {
                 Block block = message.getBlock();
-                Block last = context.getChain().getLast();
-                if(BlockChain.validBlock(last,block)){
-                    context.getChain().addBlock(block);
-                    System.out.println(message.getTag()+" a block");
-                    block.print();
+                if(context.getChain().accept(block)){
+                    System.out.println(message.toString());
                     message.setTag("broadcast");
                     network.broadcast(message);
                 }
+
             }
         });
 
-        this.handler(new MessageHandler<MessageChain>() {
+        this.handler(new MessageHandler<MessageRequestBlock>() {
             @Override
-            public void handle(IPeerNetwork network, MessageChain message) {
-                BlockChain chain = message.getChain();
-                if(chain.valid()){
-                    if(context.replace(chain)){
-                        System.out.println("accept a chain");
-                        //network.broadcast(message);
-                    }
+            public void handle(IPeerNetwork network, MessageRequestBlock message) {
+                System.out.println(message.toString());
+                String hash = message.getHash();
+                Block block = context.getChain().findBlock(hash);
+                if(block!=null){
+                    MessageBlock messageBlock =new MessageBlock("broadcast",block);
+                    network.broadcast(messageBlock);
                 }
             }
         });

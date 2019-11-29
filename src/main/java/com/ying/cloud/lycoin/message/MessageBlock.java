@@ -35,4 +35,16 @@ public class MessageBlock extends Message {
         this.tag = tag;
         this.block = block;
     }
+
+    @Override
+    public String toString() {
+        StringBuffer sb =new StringBuffer();
+        sb.append(tag);
+        sb.append(" ");
+        sb.append(block.getIndex());
+        sb.append(" ");
+        sb.append(block.getIp());
+
+        return sb.toString();
+    }
 }

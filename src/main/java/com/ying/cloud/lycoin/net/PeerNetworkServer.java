@@ -41,7 +41,7 @@ public class PeerNetworkServer {
         try{
             setupServer();
             setupClients();
-            setupHttpRequest();
+            //setupHttpRequest();
             System.out.println("server is setup ");
         }
         catch (Exception error){

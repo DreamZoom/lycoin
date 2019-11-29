@@ -4,11 +4,15 @@ import com.google.gson.Gson;
 import com.ying.cloud.lycoin.crypto.DefaultHashEncoder;
 import com.ying.cloud.lycoin.crypto.HashEncoder;
 import com.ying.cloud.lycoin.message.MessageBlock;
+import com.ying.cloud.lycoin.message.MessageChain;
 import com.ying.cloud.lycoin.message.MessageHandler;
+import com.ying.cloud.lycoin.message.MessageRequestBlock;
 import com.ying.cloud.lycoin.models.Block;
 import com.ying.cloud.lycoin.models.BlockChain;
+import com.ying.cloud.lycoin.models.Peer;
 import com.ying.cloud.lycoin.net.LycoinHttpServer;
 import com.ying.cloud.lycoin.net.PeerNetworkServer;
+import com.ying.cloud.lycoin.utils.HttpUtils;
 import org.apache.commons.io.FileUtils;
 
 import java.io.File;
@@ -59,6 +63,25 @@ public abstract class BlockApplication implements IBlockApplication {
 
         PeerNetworkServer peerServer =new PeerNetworkServer(context);
         peerServer.setup();
+
+
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                while (true){
+                    try{
+                        String hash = context.getChain().getLoseBlock();
+                        if(hash!=null){
+                            MessageRequestBlock requestBlock =new MessageRequestBlock(hash);
+                            context.getNetwork().broadcast(requestBlock);
+                        }
+                        Thread.sleep(2000);
+                    }catch (Exception err){
+                        System.out.println(err.getMessage());
+                    }
+                }
+            }
+        }).start();
 
         context.getChain().findNextBlock((block)->{
             MessageBlock messageBlock =new MessageBlock("find");
