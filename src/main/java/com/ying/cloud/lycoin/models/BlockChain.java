@@ -95,21 +95,9 @@ public class BlockChain {
     }
 
     public synchronized Block getRoot(){
-        if(chain.size()<=0) {
-            return null;
-        }
-        return chain.get(0);
-    }
-    public synchronized Block getLast(){
-        if(chain.size()<=0) {
-            return null;
-        }
-        return chain.get(chain.size()-1);
+        return root;
     }
 
-    public synchronized void addBlock(Block block){
-        chain.add(block);
-    }
 
     public void findNextBlock(Function<Block,Boolean> callback){
 
@@ -203,9 +191,6 @@ public class BlockChain {
         return  true;
     }
 
-    public synchronized boolean valid(){
-        return BlockChain.validNewChain(this.chain);
-    }
 
     public synchronized boolean accept(Block block){
 
@@ -311,12 +296,4 @@ public class BlockChain {
         return false;
     }
 
-    public synchronized void  merge(){
-
-    }
-
-
-    public synchronized  void print(){
-        chain.forEach((block)->{block.print();});
-    }
 }

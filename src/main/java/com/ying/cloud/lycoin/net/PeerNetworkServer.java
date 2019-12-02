@@ -2,10 +2,7 @@ package com.ying.cloud.lycoin.net;
 
 import com.google.gson.Gson;
 import com.ying.cloud.lycoin.LycoinContext;
-import com.ying.cloud.lycoin.message.Message;
-import com.ying.cloud.lycoin.message.MessageBlock;
-import com.ying.cloud.lycoin.message.MessageChain;
-import com.ying.cloud.lycoin.message.MessageHandler;
+import com.ying.cloud.lycoin.message.*;
 import com.ying.cloud.lycoin.models.Block;
 import com.ying.cloud.lycoin.models.BlockChain;
 import com.ying.cloud.lycoin.models.Peer;
@@ -122,7 +119,9 @@ public class PeerNetworkServer {
                                 BlockChain chain =new Gson().fromJson(chainString,BlockChain.class);
                                 MessageChain message =new MessageChain();
                                 message.setChain(chain);
-                                network.trigger(message);
+
+                                HttpMessageSource source =new HttpMessageSource(peer.getIp(),peer.getHttpPort());
+                                network.trigger(message,source);
 
                             }catch (Exception error){
                                 //System.out.println(error.getMessage());

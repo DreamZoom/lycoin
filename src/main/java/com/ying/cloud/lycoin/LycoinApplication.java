@@ -1,12 +1,8 @@
 package com.ying.cloud.lycoin;
 
 
-import com.ying.cloud.lycoin.message.MessageBlock;
-import com.ying.cloud.lycoin.message.MessageChain;
-import com.ying.cloud.lycoin.message.MessageHandler;
-import com.ying.cloud.lycoin.message.MessageRequestBlock;
+import com.ying.cloud.lycoin.message.*;
 import com.ying.cloud.lycoin.models.Block;
-import com.ying.cloud.lycoin.models.BlockChain;
 import com.ying.cloud.lycoin.net.IPeerNetwork;
 
 
@@ -20,7 +16,7 @@ public class LycoinApplication extends BlockApplication {
     public void init(LycoinContext context) {
         this.handler(new MessageHandler<MessageBlock>() {
             @Override
-            public void handle(IPeerNetwork network, MessageBlock message) {
+            public void handle(IPeerNetwork network, IMessageSource source, MessageBlock message) {
                 Block block = message.getBlock();
                 if(context.getChain().accept(block)){
                     System.out.println(message.toString());
@@ -33,7 +29,7 @@ public class LycoinApplication extends BlockApplication {
 
         this.handler(new MessageHandler<MessageRequestBlock>() {
             @Override
-            public void handle(IPeerNetwork network, MessageRequestBlock message) {
+            public void handle(IPeerNetwork network,IMessageSource source, MessageRequestBlock message) {
                 System.out.println(message.toString());
                 String hash = message.getHash();
                 Block block = context.getChain().findBlock(hash);
@@ -43,5 +39,15 @@ public class LycoinApplication extends BlockApplication {
                 }
             }
         });
+    }
+
+    @Override
+    public void run() {
+//        context.getChain().findNextBlock((block)->{
+//            MessageBlock messageBlock =new MessageBlock("find");
+//            messageBlock.setBlock(block);
+//            context.getNetwork().trigger(messageBlock,null);
+//            return  true;
+//        });
     }
 }

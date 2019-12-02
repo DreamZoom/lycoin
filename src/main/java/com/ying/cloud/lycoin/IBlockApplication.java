@@ -6,5 +6,6 @@ public interface IBlockApplication {
 
     void init(LycoinContext context);
     void setup();
+    void run();
     void handler(MessageHandler handler);
 }

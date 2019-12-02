@@ -3,16 +3,13 @@ package com.ying.cloud.lycoin;
 import com.google.gson.Gson;
 import com.ying.cloud.lycoin.crypto.DefaultHashEncoder;
 import com.ying.cloud.lycoin.crypto.HashEncoder;
-import com.ying.cloud.lycoin.message.MessageBlock;
-import com.ying.cloud.lycoin.message.MessageChain;
 import com.ying.cloud.lycoin.message.MessageHandler;
 import com.ying.cloud.lycoin.message.MessageRequestBlock;
-import com.ying.cloud.lycoin.models.Block;
+import com.ying.cloud.lycoin.models.Account;
 import com.ying.cloud.lycoin.models.BlockChain;
-import com.ying.cloud.lycoin.models.Peer;
 import com.ying.cloud.lycoin.net.LycoinHttpServer;
 import com.ying.cloud.lycoin.net.PeerNetworkServer;
-import com.ying.cloud.lycoin.utils.HttpUtils;
+import com.ying.cloud.lycoin.transaction.TransactionStore;
 import org.apache.commons.io.FileUtils;
 
 import java.io.File;
@@ -25,21 +22,32 @@ public abstract class BlockApplication implements IBlockApplication {
     private static final String DEFAULT_CONFIG_FILE  = "lycoin.conf";
 
 
-    private LycoinContext context;
+    protected LycoinContext context;
 
     public BlockApplication(){
         context = new LycoinContext();
 
-        List<MessageHandler>  handlers = new ArrayList<>();
-        context.setHandlers(handlers);
 
-        BlockChain chain = new BlockChain();
-        context.setChain(chain);
 
-        HashEncoder encoder =new DefaultHashEncoder();
-        context.setEncoder(encoder);
+
 
         try{
+
+            List<MessageHandler>  handlers = new ArrayList<>();
+            context.setHandlers(handlers);
+
+            BlockChain chain = new BlockChain();
+            context.setChain(chain);
+
+            HashEncoder encoder =new DefaultHashEncoder();
+            context.setEncoder(encoder);
+
+            TransactionStore transactionList = new TransactionStore();
+            context.setTransactions(transactionList);
+
+            Account account = Account.init();
+            context.setAccount(account);
+
             Gson gson = new Gson();
             String json =  FileUtils.readFileToString(new File(DEFAULT_CONFIG_FILE),Charset.forName("utf-8"));
             BlockConfig config=gson.fromJson(json,BlockConfig.class);
@@ -54,6 +62,9 @@ public abstract class BlockApplication implements IBlockApplication {
 
     @Override
     public abstract void init(LycoinContext context);
+
+    @Override
+    public abstract void run();
 
     @Override
     public void setup() {
@@ -83,12 +94,7 @@ public abstract class BlockApplication implements IBlockApplication {
             }
         }).start();
 
-        context.getChain().findNextBlock((block)->{
-            MessageBlock messageBlock =new MessageBlock("find");
-            messageBlock.setBlock(block);
-            context.getNetwork().trigger(messageBlock);
-            return  true;
-        });
+        this.run();
     }
 
     @Override

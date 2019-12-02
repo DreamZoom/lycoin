@@ -1,15 +1,13 @@
 package com.ying.cloud.lycoin;
 
 import com.ying.cloud.lycoin.crypto.HashEncoder;
-import com.ying.cloud.lycoin.event.LycoinEvent;
-import com.ying.cloud.lycoin.event.LycoinEventListener;
-import com.ying.cloud.lycoin.event.LycoinEventManager;
 import com.ying.cloud.lycoin.message.MessageHandler;
+import com.ying.cloud.lycoin.models.Account;
 import com.ying.cloud.lycoin.models.BlockChain;
 import com.ying.cloud.lycoin.net.IPeerNetwork;
+import com.ying.cloud.lycoin.transaction.TransactionStore;
 
 import java.util.List;
-import java.util.function.Consumer;
 
 
 /**
@@ -85,5 +83,26 @@ public class LycoinContext {
     }
 
     private List<MessageHandler> handlers;
+
+
+    public TransactionStore getTransactions() {
+        return transactions;
+    }
+
+    public void setTransactions(TransactionStore transactions) {
+        this.transactions = transactions;
+    }
+
+    private TransactionStore transactions;
+
+    public Account getAccount() {
+        return account;
+    }
+
+    public void setAccount(Account account) {
+        this.account = account;
+    }
+
+    private Account account;
 
 }
