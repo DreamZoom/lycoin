@@ -5,18 +5,24 @@ import java.util.Arrays;
 import java.util.List;
 
 public class MerkleUtils {
-    public MerkleNode tree(MerkleNode ...nodes){
+    public static MerkleNode tree(MerkleNode ...nodes){
         return tree(new ArrayList<MerkleNode>(Arrays.asList(nodes)));
     }
 
-    public MerkleNode tree(List<MerkleNode> nodes){
-        int size = nodes.size()/2;
+    public static MerkleNode tree(List<MerkleNode> nodes){
+        int size = nodes.size()%2;
+        if(size==0){
+            size = nodes.size()/2;
+        }
+        else{
+            size = nodes.size()/2 +1;
+        }
         List<MerkleNode> p_nodes =new ArrayList<>();
         for (int i = 0; i < size; i+=2) {
             MerkleHashNode hashNode =new MerkleHashNode();
             hashNode.setLeft(nodes.get(i));
-            if(i+1<=nodes.size()){
-                hashNode.setLeft(nodes.get(i+1));
+            if(i+1<nodes.size()){
+                hashNode.setRight(nodes.get(i+1));
             }
             p_nodes.add(hashNode);
         }

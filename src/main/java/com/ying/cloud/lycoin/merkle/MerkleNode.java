@@ -1,6 +1,10 @@
 package com.ying.cloud.lycoin.merkle;
 
+import com.ying.cloud.lycoin.transaction.ITransaction;
+
 import java.io.Serializable;
+import java.util.List;
+import java.util.function.Function;
 
 public class MerkleNode implements IMerkleNode,Serializable {
 
@@ -26,5 +30,10 @@ public class MerkleNode implements IMerkleNode,Serializable {
     @Override
     public void encode() {
         this.hash = this.toHashString();
+    }
+
+    @Override
+    public <T> List<T> map(Function<ITransaction, T> callback) {
+        return null;
     }
 }

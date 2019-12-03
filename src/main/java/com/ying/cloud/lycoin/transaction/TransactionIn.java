@@ -1,8 +1,19 @@
 package com.ying.cloud.lycoin.transaction;
 
-public class TransactionIn {
+import java.io.Serializable;
+
+public class TransactionIn implements Serializable {
     private Long index;
     private String id;
+    public TransactionIn() {
+
+    }
+
+
+    public TransactionIn(Long index, String id) {
+        this.index = index;
+        this.id = id;
+    }
 
     public Long getIndex() {
         return index;

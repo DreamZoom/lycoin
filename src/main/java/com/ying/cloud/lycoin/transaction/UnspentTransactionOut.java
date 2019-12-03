@@ -1,15 +1,17 @@
 package com.ying.cloud.lycoin.transaction;
 
-public class UnspentTransactionOut {
-    private Long index;
+import java.io.Serializable;
+
+public class UnspentTransactionOut implements Serializable {
+    private Integer index;
     private String id;
     private String address;
 
-    public Long getIndex() {
+    public Integer getIndex() {
         return index;
     }
 
-    public void setIndex(Long index) {
+    public void setIndex(Integer index) {
         this.index = index;
     }
 

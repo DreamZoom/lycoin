@@ -1,15 +1,17 @@
 package com.ying.cloud.lycoin.transaction;
 
+import com.ying.cloud.lycoin.crypto.RSAUtils;
 import com.ying.cloud.lycoin.crypto.SHA256;
 import com.ying.cloud.lycoin.merkle.MerkleDataNode;
+import com.ying.cloud.lycoin.merkle.MerkleNode;
 import com.ying.cloud.lycoin.models.Account;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Function;
 
 public class Transaction extends MerkleDataNode implements ITransaction {
-    public String getId() {
-        return id;
-    }
+
 
     public void setId(String id) {
         this.id = id;
@@ -44,11 +46,57 @@ public class Transaction extends MerkleDataNode implements ITransaction {
     private List<TransactionOut> outputs;
     private String signature;
 
+    public  Transaction(){
+        this.inputs =new ArrayList<>();
+        this.outputs =new ArrayList<>();
+    }
+
     public void  addOutput(TransactionOut out){
         outputs.add(out);
     }
 
-    public void sign(Account account){
-        //SHA256.encode()
+    public void sign(Account account) throws Exception{
+        StringBuffer sb =new StringBuffer();
+
+        for (int i = 0; i < inputs.size(); i++) {
+            sb.append(inputs.get(i).getId()+inputs.get(i).getIndex());
+        }
+        for (int i = 0; i < outputs.size(); i++) {
+            sb.append(outputs.get(i).getAddress()+outputs.get(i).getAmount());
+        }
+
+        this.id = SHA256.encode(sb.toString());
+
+        signature = RSAUtils.sign(id+sb.toString(),account.getPrivateKey());
+    }
+
+    @Override
+    public String getId() {
+        return this.id;
+    }
+
+    @Override
+    public MerkleNode getMerkleNode() {
+        return this;
+    }
+
+    @Override
+    public String toHashString() {
+        StringBuffer sb =new StringBuffer();
+
+        for (int i = 0; i < inputs.size(); i++) {
+            sb.append(inputs.get(i).getId()+inputs.get(i).getIndex());
+        }
+        for (int i = 0; i < outputs.size(); i++) {
+            sb.append(outputs.get(i).getAddress()+outputs.get(i).getAmount());
+        }
+        return SHA256.encode(sb.toString());
+    }
+
+    @Override
+    public <T> List<T> map(Function<ITransaction, T> callback) {
+        List<T> list =new ArrayList<>();
+        list.add(callback.apply(this));
+        return list;
     }
 }

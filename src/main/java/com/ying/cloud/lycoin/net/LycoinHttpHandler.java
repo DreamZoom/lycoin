@@ -3,8 +3,11 @@ package com.ying.cloud.lycoin.net;
 import com.google.gson.Gson;
 import com.ying.cloud.lycoin.LycoinContext;
 import com.ying.cloud.lycoin.message.MessageAuthorizationInfo;
+import com.ying.cloud.lycoin.message.MessageTransaction;
 import com.ying.cloud.lycoin.models.BlockChain;
 import com.ying.cloud.lycoin.transaction.AuthorizationInfo;
+import com.ying.cloud.lycoin.transaction.Transaction;
+import com.ying.cloud.lycoin.transaction.TransactionOut;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.handler.AbstractHandler;
 import org.springframework.cglib.core.Converter;
@@ -33,13 +36,30 @@ public class LycoinHttpHandler extends AbstractHandler {
         if("blocks".equals(action)){
             BlockChain chain = context.getChain();
             Gson gson=new Gson();
-            response.getWriter().write(gson.toJson(chain));
+            response.getWriter().write(gson.toJson(chain.getBlocks()));
         }
 
         if("tx".equals(action)){
-            BlockChain chain = context.getChain();
+            try{
+                TransactionOut out =mapper(TransactionOut.class,request);
+                Transaction transaction =context.getTransactions().tx(context.getAccount(),out);
+                if(transaction!=null){
+                    context.getNetwork().broadcast(new MessageTransaction(transaction));
+                    response.getWriter().write("ok");
+                }
+                else{
+                    response.getWriter().write("error");
+                }
+            }
+            catch (Exception error){
+                response.getWriter().write(error.getMessage());
+            }
+
+        }
+
+        if("amount".equals(action)){
             Gson gson=new Gson();
-            response.getWriter().write(gson.toJson(chain));
+            response.getWriter().write(gson.toJson(context.getTransactions().getUnspentTransactionOuts()));
         }
 
         if("auth".equals(action)){
@@ -66,8 +86,11 @@ public class LycoinHttpHandler extends AbstractHandler {
             field.setAccessible(true);
             String name = field.getName();
             String value = request.getParameter(name);
-            Object o = parser(field.getType(),value);
-            field.set(out,o);
+            if(value != null){
+                Object o = parser(field.getType(),value);
+                field.set(out,o);
+            }
+
         }
         return (T)out;
     }

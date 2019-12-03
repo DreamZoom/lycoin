@@ -6,10 +6,18 @@ public class TransactionUtils {
     private static final long COINBASE_AMOUNT =50;
     public static Transaction base(Account account){
 
-        Transaction transaction =new Transaction();
-        transaction.setId("TX"+System.currentTimeMillis());
-        TransactionOut out =new TransactionOut(account.getPublicKey(),COINBASE_AMOUNT);
-        transaction.addOutput(out);
+        try{
+            Transaction transaction =new Transaction();
+            transaction.setId("TX"+System.currentTimeMillis());
+            TransactionOut out =new TransactionOut(account.getPublicKey(),COINBASE_AMOUNT);
+            transaction.addOutput(out);
+            transaction.sign(account);
+
+            return  transaction;
+        }catch (Exception error){
+
+        }
+
         return null;
     }
 }

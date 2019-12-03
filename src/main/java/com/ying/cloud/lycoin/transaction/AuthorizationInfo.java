@@ -2,6 +2,7 @@ package com.ying.cloud.lycoin.transaction;
 
 import com.ying.cloud.lycoin.crypto.SHA256;
 import com.ying.cloud.lycoin.merkle.MerkleDataNode;
+import com.ying.cloud.lycoin.merkle.MerkleNode;
 
 public class AuthorizationInfo extends MerkleDataNode implements ITransaction{
     @Override
@@ -75,4 +76,13 @@ public class AuthorizationInfo extends MerkleDataNode implements ITransaction{
     //授权起始时间
     private Long timestamp;
 
+    @Override
+    public String getId() {
+        return toHashString();
+    }
+
+    @Override
+    public MerkleNode getMerkleNode() {
+        return this;
+    }
 }

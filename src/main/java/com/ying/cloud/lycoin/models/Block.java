@@ -1,5 +1,7 @@
 package com.ying.cloud.lycoin.models;
 
+import com.ying.cloud.lycoin.merkle.MerkleNode;
+
 import java.io.Serializable;
 
 public class Block implements Serializable {
@@ -79,6 +81,17 @@ public class Block implements Serializable {
     }
 
     private String ip;
+
+
+    public MerkleNode getBody() {
+        return body;
+    }
+
+    public void setBody(MerkleNode body) {
+        this.body = body;
+    }
+
+    private MerkleNode body;
 
 
     public void print(){

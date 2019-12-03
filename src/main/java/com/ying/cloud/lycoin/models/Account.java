@@ -3,12 +3,16 @@ package com.ying.cloud.lycoin.models;
 import com.ying.cloud.lycoin.store.StoreUtils;
 import org.apache.commons.codec.binary.Base64;
 
+import javax.crypto.Cipher;
 import java.io.Serializable;
+import java.security.KeyFactory;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.SecureRandom;
 import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
+import java.security.spec.PKCS8EncodedKeySpec;
+import java.security.spec.X509EncodedKeySpec;
 
 public class Account implements Serializable {
     public String getPublicKey() {
@@ -45,7 +49,6 @@ public class Account implements Serializable {
 
         account.setPublicKey(publicKeyString);
         account.setPrivateKey(privateKeyString);
-
         return account;
     }
 
@@ -62,4 +65,5 @@ public class Account implements Serializable {
         }
         return null;
     }
+
 }
