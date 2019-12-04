@@ -1,4 +1,4 @@
-package com.ying.cloud.lycoin.message;
+package com.ying.cloud.lycoin.net.message;
 
 public class HttpMessageSource  extends  MessageSource{
     public String getIp() {

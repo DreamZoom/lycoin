@@ -2,15 +2,14 @@ package com.ying.cloud.lycoin.net;
 
 import com.google.gson.Gson;
 import com.ying.cloud.lycoin.LycoinContext;
-import com.ying.cloud.lycoin.message.MessageAuthorizationInfo;
-import com.ying.cloud.lycoin.message.MessageTransaction;
+import com.ying.cloud.lycoin.net.message.MessageAuthorizationInfo;
+import com.ying.cloud.lycoin.net.message.MessageTransaction;
 import com.ying.cloud.lycoin.models.BlockChain;
 import com.ying.cloud.lycoin.transaction.AuthorizationInfo;
 import com.ying.cloud.lycoin.transaction.Transaction;
 import com.ying.cloud.lycoin.transaction.TransactionOut;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.handler.AbstractHandler;
-import org.springframework.cglib.core.Converter;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;

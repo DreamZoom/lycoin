@@ -1,8 +1,12 @@
 package com.ying.cloud.lycoin.net.netty;
 
 import com.ying.cloud.lycoin.LycoinContext;
-import com.ying.cloud.lycoin.models.Peer;
+import com.ying.cloud.lycoin.config.Peer;
 import com.ying.cloud.lycoin.net.*;
+import com.ying.cloud.lycoin.net.message.ChannelMessageSource;
+import com.ying.cloud.lycoin.net.message.Message;
+import com.ying.cloud.lycoin.net.message.MessageChannel;
+import com.ying.cloud.lycoin.net.message.MessageSource;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelHandlerContext;
@@ -31,8 +35,9 @@ public class NettyNetwork extends Network {
         ChannelInboundHandlerAdapter channelInboundHandlerAdapter =new ChannelInboundHandlerAdapter(){
             @Override
             public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-                //super.channelRead(ctx, msg);
-                //trigger()
+                MessageSource source =new ChannelMessageSource(ctx);
+                Message message =new MessageChannel(ctx.channel(),"add");
+                trigger(source,message);
             }
             @Override
             public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {

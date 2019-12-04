@@ -1,8 +1,8 @@
 package com.ying.cloud.lycoin.net;
 
-import com.ying.cloud.lycoin.message.IMessageSource;
-import com.ying.cloud.lycoin.message.Message;
-import com.ying.cloud.lycoin.message.MessageHandler;
+import com.ying.cloud.lycoin.net.message.IMessageSource;
+import com.ying.cloud.lycoin.net.message.Message;
+import com.ying.cloud.lycoin.net.message.MessageHandler;
 
 public interface IPeerNetwork {
     void broadcast(Message message);

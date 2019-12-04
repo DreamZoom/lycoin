@@ -1,6 +1,6 @@
-package com.ying.cloud.lycoin.message;
+package com.ying.cloud.lycoin.net.message;
 
-import io.netty.channel.Channel;
+import com.ying.cloud.lycoin.net.IMessage;
 import io.netty.channel.ChannelHandlerContext;
 
 public class ChannelMessageSource extends MessageSource {
@@ -20,7 +20,7 @@ public class ChannelMessageSource extends MessageSource {
     }
 
     @Override
-    public void send(Message message) {
+    public void send(IMessage message) {
         channel.channel().writeAndFlush(message);
     }
 }

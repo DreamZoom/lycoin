@@ -2,9 +2,9 @@ package com.ying.cloud.lycoin.net;
 
 import com.google.gson.Gson;
 import com.ying.cloud.lycoin.LycoinContext;
-import com.ying.cloud.lycoin.message.*;
+import com.ying.cloud.lycoin.net.message.*;
 import com.ying.cloud.lycoin.models.BlockChain;
-import com.ying.cloud.lycoin.models.Peer;
+import com.ying.cloud.lycoin.config.Peer;
 import com.ying.cloud.lycoin.net.netty.ConnectionListener;
 import com.ying.cloud.lycoin.net.netty.MessageDecoder;
 import com.ying.cloud.lycoin.net.netty.MessageEncoder;

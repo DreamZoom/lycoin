@@ -1,12 +1,11 @@
 package com.ying.cloud.lycoin.net;
 
-import com.ying.cloud.lycoin.message.*;
+import com.ying.cloud.lycoin.net.message.*;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.channel.group.ChannelGroup;
 import io.netty.channel.group.DefaultChannelGroup;
-import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.util.concurrent.GlobalEventExecutor;
 
 import java.lang.reflect.ParameterizedType;

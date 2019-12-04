@@ -1,7 +1,8 @@
 package com.ying.cloud.lycoin;
 
+import com.ying.cloud.lycoin.config.BlockConfig;
 import com.ying.cloud.lycoin.crypto.HashEncoder;
-import com.ying.cloud.lycoin.message.MessageHandler;
+import com.ying.cloud.lycoin.net.message.MessageHandler;
 import com.ying.cloud.lycoin.models.Account;
 import com.ying.cloud.lycoin.models.BlockChain;
 import com.ying.cloud.lycoin.net.IPeerNetwork;

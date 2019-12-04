@@ -1,6 +1,4 @@
-package com.ying.cloud.lycoin;
-
-import com.ying.cloud.lycoin.models.Peer;
+package com.ying.cloud.lycoin.config;
 
 import java.util.List;
 

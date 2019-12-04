@@ -1,4 +1,4 @@
-package com.ying.cloud.lycoin.message;
+package com.ying.cloud.lycoin.net.message;
 
 import com.ying.cloud.lycoin.transaction.AuthorizationInfo;
 

@@ -1,7 +1,6 @@
-package com.ying.cloud.lycoin.message;
+package com.ying.cloud.lycoin.net.message;
 
 import com.ying.cloud.lycoin.transaction.ITransaction;
-import com.ying.cloud.lycoin.transaction.Transaction;
 
 public class MessageTransaction extends  Message {
     public ITransaction getTransaction() {

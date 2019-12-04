@@ -2,10 +2,7 @@ package com.ying.cloud.lycoin.net.http;
 
 
 import com.ying.cloud.lycoin.LycoinContext;
-import com.ying.cloud.lycoin.message.IMessageSource;
-import com.ying.cloud.lycoin.message.MessageAuthorizationInfo;
-import com.ying.cloud.lycoin.message.MessageHandler;
-import com.ying.cloud.lycoin.models.Message;
+import com.ying.cloud.lycoin.net.message.MessageAuthorizationInfo;
 import com.ying.cloud.lycoin.net.*;
 import com.ying.cloud.lycoin.transaction.AuthorizationInfo;
 import com.ying.cloud.lycoin.utils.ByteArrayUtils;
@@ -31,6 +28,8 @@ public class HttpNetwork extends Network {
 
     @Override
     public void setup(){
+
+
         Server server = new Server(context.getConfig().getHttpPort());
         Handler handler =new AbstractHandler() {
             @Override
@@ -66,6 +65,8 @@ public class HttpNetwork extends Network {
                baseRequest.setHandled(true);
             }
         };
+
+
 
         server.setHandler(handler);
         try{

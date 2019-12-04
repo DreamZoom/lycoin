@@ -1,7 +1,5 @@
 package com.ying.cloud.lycoin.utils;
 
-import com.ying.cloud.lycoin.message.Message;
-
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.ObjectInputStream;

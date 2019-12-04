@@ -1,6 +1,6 @@
 package com.ying.cloud.lycoin;
 
-import com.ying.cloud.lycoin.message.MessageHandler;
+import com.ying.cloud.lycoin.net.message.MessageHandler;
 
 public interface IBlockApplication {
 

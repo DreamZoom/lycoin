@@ -1,13 +1,13 @@
 package com.ying.cloud.lycoin;
 
 import com.google.gson.Gson;
+import com.ying.cloud.lycoin.config.BlockConfig;
 import com.ying.cloud.lycoin.crypto.DefaultHashEncoder;
 import com.ying.cloud.lycoin.crypto.HashEncoder;
-import com.ying.cloud.lycoin.message.MessageHandler;
-import com.ying.cloud.lycoin.message.MessageRequestBlock;
+import com.ying.cloud.lycoin.net.message.MessageHandler;
+import com.ying.cloud.lycoin.net.message.MessageRequestBlock;
 import com.ying.cloud.lycoin.models.Account;
 import com.ying.cloud.lycoin.models.BlockChain;
-import com.ying.cloud.lycoin.net.LycoinHttpServer;
 import com.ying.cloud.lycoin.net.PeerNetworkServer;
 import com.ying.cloud.lycoin.transaction.TransactionStore;
 import org.apache.commons.io.FileUtils;
