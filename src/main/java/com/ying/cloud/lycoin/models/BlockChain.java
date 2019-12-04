@@ -146,6 +146,36 @@ public class BlockChain {
         return node;
     }
 
+    public Block getNextBlock(LycoinContext context){
+        String ipAddress="";
+        try {
+            InetAddress address = InetAddress.getLocalHost();
+            ipAddress= address.getHostAddress();
+
+        }
+        catch (Exception err){}
+
+        MerkleNode rootNode = getDataHash(context);
+        Block last = getBestLastBlock();
+        Block block =new Block();
+        block.setIndex(last.getIndex()+1);
+        block.setPreviousHash(last.getHash());
+        block.setData(rootNode.getHash());
+        block.setIp(ipAddress);
+        block.setTimestamp(System.currentTimeMillis());
+        block.setNonce(1L);
+
+        block.setBody(rootNode);
+
+        long difficulty = getDifficulty();
+        block.setDifficulty(difficulty);
+
+        String hash = calculateHash(block);
+        block.setHash(hash);
+        context.getTransactions().clearTransaction();
+        return block;
+    }
+
     public void findNextBlock(LycoinContext context,Function<Block, Boolean> callback){
 
         String ipAddress="";

@@ -1,8 +1,10 @@
 package com.ying.cloud.lycoin.message;
 
+import com.ying.cloud.lycoin.net.IMessage;
+
 import java.io.Serializable;
 
-public class Message implements Serializable {
+public class Message implements IMessage, Serializable {
 
     public String getSign() {
         return sign;

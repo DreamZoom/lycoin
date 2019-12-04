@@ -66,7 +66,7 @@ public class LycoinApplication extends BlockApplication {
         this.handler(new MessageHandler<MessageTransaction>() {
             @Override
             public void handle(IPeerNetwork network, IMessageSource source, MessageTransaction message) {
-                Transaction transaction = message.getTransaction();
+                ITransaction transaction = message.getTransaction();
                 if(context.getTransactions().addTransaction(transaction)) {
                     network.broadcast(message);
                 }

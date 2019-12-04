@@ -1,6 +1,10 @@
 package com.ying.cloud.lycoin.message;
 
-public class MessageBraft extends  Message {
+import com.ying.cloud.lycoin.net.IMessage;
+
+import java.io.Serializable;
+
+public class MessageBraft implements IMessage,Serializable {
     public Object getBraft() {
         return braft;
     }

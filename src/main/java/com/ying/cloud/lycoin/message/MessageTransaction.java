@@ -1,19 +1,20 @@
 package com.ying.cloud.lycoin.message;
 
+import com.ying.cloud.lycoin.transaction.ITransaction;
 import com.ying.cloud.lycoin.transaction.Transaction;
 
 public class MessageTransaction extends  Message {
-    public Transaction getTransaction() {
+    public ITransaction getTransaction() {
         return transaction;
     }
 
-    public void setTransaction(Transaction transaction) {
+    public void setTransaction(ITransaction transaction) {
         this.transaction = transaction;
     }
 
-    public MessageTransaction(Transaction transaction) {
+    public MessageTransaction(ITransaction transaction) {
         this.transaction = transaction;
     }
 
-    private Transaction transaction;
+    private ITransaction transaction;
 }

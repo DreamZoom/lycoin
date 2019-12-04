@@ -9,6 +9,17 @@ import java.util.List;
  */
 public class BlockConfig {
 
+
+    public String getIp() {
+        return ip;
+    }
+
+    public void setIp(String ip) {
+        this.ip = ip;
+    }
+
+    private String ip;
+
     /**
      * 服务提供端口
      */

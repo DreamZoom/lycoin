@@ -1,4 +1,4 @@
-package com.ying.cloud.lycoin.net;
+package com.ying.cloud.lycoin.net.netty;
 
 
 import com.ying.cloud.lycoin.message.Message;

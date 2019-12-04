@@ -1,12 +1,10 @@
-package com.ying.cloud.lycoin.net;
+package com.ying.cloud.lycoin.net.netty;
 
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.EventLoop;
-import io.netty.channel.socket.nio.NioSocketChannel;
 
-import java.net.SocketAddress;
 import java.util.concurrent.TimeUnit;
 
 public class ConnectionListener implements ChannelFutureListener {

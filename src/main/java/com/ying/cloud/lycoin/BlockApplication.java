@@ -28,9 +28,6 @@ public abstract class BlockApplication implements IBlockApplication {
         context = new LycoinContext();
 
 
-
-
-
         try{
 
             List<MessageHandler>  handlers = new ArrayList<>();
@@ -69,8 +66,8 @@ public abstract class BlockApplication implements IBlockApplication {
     @Override
     public void setup() {
 
-        LycoinHttpServer server =new LycoinHttpServer(context);
-        server.run();
+//        LycoinHttpServer server =new LycoinHttpServer(context);
+//        server.run();
 
         PeerNetworkServer peerServer =new PeerNetworkServer(context);
         peerServer.setup();

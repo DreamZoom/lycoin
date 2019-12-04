@@ -6,6 +6,7 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.channel.group.ChannelGroup;
 import io.netty.channel.group.DefaultChannelGroup;
+import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.util.concurrent.GlobalEventExecutor;
 
 import java.lang.reflect.ParameterizedType;
@@ -33,8 +34,24 @@ public class PeerNetwork extends ChannelInboundHandlerAdapter implements IPeerNe
     }
 
     @Override
-    public void handlerAdded(ChannelHandlerContext ctx) throws Exception {
+    public void channelActive(ChannelHandlerContext ctx) throws Exception {
         channelGroup.add(ctx.channel());
+        MessageSource source =new ChannelMessageSource(ctx);
+        Message message =new MessageChannel(ctx.channel(),"add");
+        trigger(message,source);
+    }
+
+    @Override
+    public void channelInactive(ChannelHandlerContext ctx) throws Exception {
+        channelGroup.remove(ctx.channel());
+        MessageSource source =new ChannelMessageSource(ctx);
+        Message message =new MessageChannel(ctx.channel(),"remove");
+        trigger(message,source);
+    }
+
+    @Override
+    public void handlerAdded(ChannelHandlerContext ctx) throws Exception {
+
     }
 
     @Override
