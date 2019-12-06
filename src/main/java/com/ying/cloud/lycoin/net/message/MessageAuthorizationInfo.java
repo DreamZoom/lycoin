@@ -1,8 +1,9 @@
 package com.ying.cloud.lycoin.net.message;
 
+import com.ying.cloud.lycoin.models.Message;
 import com.ying.cloud.lycoin.transaction.AuthorizationInfo;
 
-public class MessageAuthorizationInfo extends  Message {
+public class MessageAuthorizationInfo extends Message {
     public AuthorizationInfo getInfo() {
         return info;
     }

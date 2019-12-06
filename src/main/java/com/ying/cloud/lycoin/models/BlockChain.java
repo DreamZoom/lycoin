@@ -68,7 +68,7 @@ public class BlockChain {
         return  SHA256.encode(sb.toString());
     }
 
-    private synchronized long getDifficulty(){
+    public synchronized long getDifficulty(){
         Block last = chain.get(chain.size()-1);
         if(last.getIndex()!=0&&last.getIndex()%DIFFICULTY_ADJUSTMENT_INTERVAL==0){
             Block prevAdjustmentBlock = chain.get(chain.size()-DIFFICULTY_ADJUSTMENT_INTERVAL);

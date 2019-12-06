@@ -2,12 +2,14 @@ package com.ying.cloud.lycoin;
 
 import com.ying.cloud.lycoin.config.BlockConfig;
 import com.ying.cloud.lycoin.crypto.HashEncoder;
-import com.ying.cloud.lycoin.net.message.MessageHandler;
+import com.ying.cloud.lycoin.miner.IMiner;
 import com.ying.cloud.lycoin.models.Account;
 import com.ying.cloud.lycoin.models.BlockChain;
-import com.ying.cloud.lycoin.net.IPeerNetwork;
+import com.ying.cloud.lycoin.net.INetwork;
+import com.ying.cloud.lycoin.net.Network;
 import com.ying.cloud.lycoin.transaction.TransactionStore;
 
+import java.util.ArrayList;
 import java.util.List;
 
 
@@ -16,15 +18,8 @@ import java.util.List;
  */
 public class LycoinContext {
 
-    /**
-     * 本地区块链
-     */
-    private BlockChain chain;
-
-
-    public Boolean replace(BlockChain newChain){
-
-        return  chain.replace(newChain);
+    public  LycoinContext(){
+        networks = new ArrayList<>();
     }
 
     /**
@@ -32,14 +27,6 @@ public class LycoinContext {
      */
     private BlockConfig config;
 
-
-    public BlockChain getChain() {
-        return chain;
-    }
-
-    public void setChain(BlockChain chain) {
-        this.chain = chain;
-    }
 
     public BlockConfig getConfig() {
         return config;
@@ -49,41 +36,11 @@ public class LycoinContext {
         this.config = config;
     }
 
-    public HashEncoder getEncoder() {
-        return encoder;
-    }
-
-    public void setEncoder(HashEncoder encoder) {
-        this.encoder = encoder;
-    }
-
-    /**
-     * Hash 编码器
-     */
-    private HashEncoder encoder;
 
 
 
-    public IPeerNetwork getNetwork() {
-        return network;
-    }
-
-    public void setNetwork(IPeerNetwork network) {
-        this.network = network;
-    }
-
-    private IPeerNetwork network;
 
 
-    public List<MessageHandler> getHandlers() {
-        return handlers;
-    }
-
-    public void setHandlers(List<MessageHandler> handlers) {
-        this.handlers = handlers;
-    }
-
-    private List<MessageHandler> handlers;
 
 
     public TransactionStore getTransactions() {
@@ -105,5 +62,30 @@ public class LycoinContext {
     }
 
     private Account account;
+
+    public IMiner getMiner() {
+        return miner;
+    }
+
+    public void setMiner(IMiner miner) {
+        this.miner = miner;
+    }
+
+    private IMiner miner;
+
+    public List<INetwork> getNetworks() {
+        return networks;
+    }
+
+    public void setNetworks(List<INetwork> networks) {
+        this.networks = networks;
+    }
+
+    private List<INetwork> networks;
+
+
+    public void addNetwork(INetwork network){
+        networks.add(network);
+    }
 
 }

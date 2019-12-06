@@ -1,33 +1,32 @@
 package com.ying.cloud.lycoin.net;
 
-import java.lang.reflect.ParameterizedType;
+import com.ying.cloud.lycoin.event.Event;
+import com.ying.cloud.lycoin.event.EventSource;
+import com.ying.cloud.lycoin.event.GlobalEventExecutor;
+import com.ying.cloud.lycoin.models.Message;
+import com.ying.cloud.lycoin.net.events.MessageEvent;
+
 import java.util.ArrayList;
 import java.util.List;
 
 public abstract class Network implements INetwork {
-
-    List<IMessageHandler> handlers;
-    List<ISource> sources;
+    List<Source> sources;
 
     public Network(){
-        this.handlers =new ArrayList<>();
         this.sources =new ArrayList<>();
     }
-    public synchronized void trigger(ISource source, IMessage message){
-        for (int i = 0; i < handlers.size(); i++) {
-            IMessageHandler handler = this.handlers.get(i);
-            ParameterizedType type = (ParameterizedType)(handler.getClass().getGenericInterfaces()[0]);
-            if(message.getClass().equals(type.getActualTypeArguments()[0])){
-                handler.handle(source,message);
-            }
-        }
+
+
+    @Override
+    public void setup() {
+
     }
 
     @Override
-    public void broadcast(IMessage message) {
+    public void broadcast(Message message) {
         for (int i = 0; i < sources.size(); i++) {
             try{
-                sources.get(i).send(message);
+                sendMessage(sources.get(i),message);
             }
             catch (Exception error){
                 System.out.println(error.getMessage());
@@ -36,18 +35,25 @@ public abstract class Network implements INetwork {
     }
 
     @Override
-    public void sendMessage(ISource source, IMessage message) {
-        source.send(message);
+    public void sendMessage(Source source, Message message) {
+
+    }
+
+
+    @Override
+    public void receiveMessage(Source source, Message message) {
+        EventSource eventSource =new EventSource(source);
+        GlobalEventExecutor.INSTANCE.dispatch(new Event<>(eventSource,message));
+    }
+
+
+    public void addSource(Source source){
+        sources.add(source);
     }
 
     @Override
-    public void handler(IMessageHandler messageHandler) {
-        handlers.add(messageHandler);
-    }
-
-
-    public void addSource(ISource source){
-        sources.add(source);
+    public void removeSource(Source source) {
+        sources.remove(source);
     }
 
 }

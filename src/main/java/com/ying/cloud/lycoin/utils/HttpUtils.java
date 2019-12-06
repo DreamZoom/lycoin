@@ -110,7 +110,7 @@ public class HttpUtils {
             conn.setUseCaches(false);
             conn.setInstanceFollowRedirects(true);
             conn.setRequestMethod("POST");
-            //conn.setRequestProperty("Connection", "Keep-Alive");
+            conn.setRequestProperty("Connection", "Keep-Alive");
             conn.setRequestProperty("Charset", encoding);
             conn.setRequestProperty("Content-Type",
                     "application/x-www-form-urlencoded");

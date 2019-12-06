@@ -1,10 +1,8 @@
 package com.ying.cloud.lycoin.net.message;
 
-import com.ying.cloud.lycoin.net.IMessage;
+import com.ying.cloud.lycoin.models.Message;
 
-import java.io.Serializable;
-
-public class MessageBraft implements IMessage,Serializable {
+public class MessageBraft  extends Message {
     public Object getBraft() {
         return braft;
     }

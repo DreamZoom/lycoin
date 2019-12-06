@@ -65,6 +65,7 @@ public class BraftNode extends HttpSource implements INode {
 
     @Override
     public boolean equals(Object obj) {
+
         return this.getName().equals(((BraftNode)obj).getName());
     }
 

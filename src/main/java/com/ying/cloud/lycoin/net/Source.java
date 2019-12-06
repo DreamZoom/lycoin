@@ -1,4 +1,5 @@
 package com.ying.cloud.lycoin.net;
 
-public interface IMessage {
+public class Source {
+
 }

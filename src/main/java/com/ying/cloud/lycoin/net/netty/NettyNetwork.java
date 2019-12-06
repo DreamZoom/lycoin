@@ -2,14 +2,10 @@ package com.ying.cloud.lycoin.net.netty;
 
 import com.ying.cloud.lycoin.LycoinContext;
 import com.ying.cloud.lycoin.config.Peer;
+import com.ying.cloud.lycoin.models.Message;
 import com.ying.cloud.lycoin.net.*;
-import com.ying.cloud.lycoin.net.message.ChannelMessageSource;
-import com.ying.cloud.lycoin.net.message.Message;
-import com.ying.cloud.lycoin.net.message.MessageChannel;
-import com.ying.cloud.lycoin.net.message.MessageSource;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.bootstrap.ServerBootstrap;
-import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.nio.NioEventLoopGroup;
@@ -32,19 +28,8 @@ public class NettyNetwork extends Network {
     @Override
     public void setup() {
 
-        ChannelInboundHandlerAdapter channelInboundHandlerAdapter =new ChannelInboundHandlerAdapter(){
-            @Override
-            public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-                MessageSource source =new ChannelMessageSource(ctx);
-                Message message =new MessageChannel(ctx.channel(),"add");
-                trigger(source,message);
-            }
-            @Override
-            public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-                System.err.println(cause.getMessage());
-            }
 
-        };
+        ChannelInboundHandlerAdapter channelInboundHandlerAdapter =new NettyChannelInboundHandler(this);
 
         ServerBootstrap serverBootstrap = new ServerBootstrap();
 
@@ -102,18 +87,18 @@ public class NettyNetwork extends Network {
         }
     }
 
-    @Override
-    public void broadcast(IMessage message) {
 
+
+    @Override
+    public void sendMessage(Source source, Message message) {
+
+        ChannelSource channelSource = (ChannelSource)source;
+        channelSource.getChannel().writeAndFlush(message);
     }
 
     @Override
-    public void sendMessage(ISource source, IMessage message) {
-
+    public void removeSource(Source source) {
+        super.removeSource(source);
     }
 
-    @Override
-    public void handler(IMessageHandler messageHandler) {
-
-    }
 }

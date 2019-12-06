@@ -1,6 +1,7 @@
 package com.ying.cloud.lycoin.net.message;
 
 import com.ying.cloud.lycoin.models.Block;
+import com.ying.cloud.lycoin.models.Message;
 
 public class MessageBlock extends Message {
     public Block getBlock() {

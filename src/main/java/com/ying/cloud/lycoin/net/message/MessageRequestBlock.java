@@ -1,6 +1,8 @@
 package com.ying.cloud.lycoin.net.message;
 
-public class MessageRequestBlock extends  Message {
+import com.ying.cloud.lycoin.models.Message;
+
+public class MessageRequestBlock extends Message {
     public String getHash() {
         return hash;
     }

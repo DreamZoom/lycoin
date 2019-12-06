@@ -4,11 +4,9 @@ import com.google.gson.Gson;
 import com.ying.cloud.lycoin.config.BlockConfig;
 import com.ying.cloud.lycoin.crypto.DefaultHashEncoder;
 import com.ying.cloud.lycoin.crypto.HashEncoder;
-import com.ying.cloud.lycoin.net.message.MessageHandler;
 import com.ying.cloud.lycoin.net.message.MessageRequestBlock;
 import com.ying.cloud.lycoin.models.Account;
 import com.ying.cloud.lycoin.models.BlockChain;
-import com.ying.cloud.lycoin.net.PeerNetworkServer;
 import com.ying.cloud.lycoin.transaction.TransactionStore;
 import org.apache.commons.io.FileUtils;
 
@@ -26,18 +24,7 @@ public abstract class BlockApplication implements IBlockApplication {
 
     public BlockApplication(){
         context = new LycoinContext();
-
-
         try{
-
-            List<MessageHandler>  handlers = new ArrayList<>();
-            context.setHandlers(handlers);
-
-            BlockChain chain = new BlockChain();
-            context.setChain(chain);
-
-            HashEncoder encoder =new DefaultHashEncoder();
-            context.setEncoder(encoder);
 
             TransactionStore transactionList = new TransactionStore();
             context.setTransactions(transactionList);
@@ -66,36 +53,15 @@ public abstract class BlockApplication implements IBlockApplication {
     @Override
     public void setup() {
 
-//        LycoinHttpServer server =new LycoinHttpServer(context);
-//        server.run();
-
-        PeerNetworkServer peerServer =new PeerNetworkServer(context);
-        peerServer.setup();
+        for (int i = 0; i <context.getNetworks().size() ; i++) {
+            context.getNetworks().get(i).setup();
+        }
 
 
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                while (true){
-                    try{
-                        String hash = context.getChain().getLoseBlock();
-                        if(hash!=null){
-                            MessageRequestBlock requestBlock =new MessageRequestBlock(hash);
-                            context.getNetwork().broadcast(requestBlock);
-                        }
-                        Thread.sleep(2000);
-                    }catch (Exception err){
-                        System.out.println(err.getMessage());
-                    }
-                }
-            }
-        }).start();
+
 
         this.run();
     }
 
-    @Override
-    public void handler(MessageHandler handler) {
-        context.getHandlers().add(handler);
-    }
+
 }

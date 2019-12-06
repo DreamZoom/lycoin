@@ -5,168 +5,183 @@ import com.bitnum.braft.core.BraftContext;
 import com.bitnum.braft.core.INode;
 import com.bitnum.braft.exception.SendMessageException;
 import com.bitnum.braft.net.AbstratBraftNet;
+import com.google.gson.Gson;
+import com.ying.cloud.lycoin.config.BlockConfig;
+import com.ying.cloud.lycoin.event.Event;
+import com.ying.cloud.lycoin.event.GlobalEventExecutor;
+import com.ying.cloud.lycoin.event.IEventListener;
+import com.ying.cloud.lycoin.miner.BraftMiner;
+import com.ying.cloud.lycoin.miner.TransactionEvent;
+import com.ying.cloud.lycoin.net.events.MessageEvent;
 import com.ying.cloud.lycoin.net.message.*;
-import com.ying.cloud.lycoin.models.Block;
 import com.ying.cloud.lycoin.config.Peer;
-import com.ying.cloud.lycoin.net.IMessageHandler;
-import com.ying.cloud.lycoin.net.IPeerNetwork;
-import com.ying.cloud.lycoin.net.ISource;
 import com.ying.cloud.lycoin.net.http.HttpNetwork;
+import com.ying.cloud.lycoin.net.netty.NettyNetwork;
+import com.ying.cloud.lycoin.transaction.AuthorizationInfo;
 import com.ying.cloud.lycoin.transaction.ITransaction;
+import com.ying.cloud.lycoin.transaction.Transaction;
+import org.apache.commons.io.FileUtils;
 
+import java.io.File;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
 
-public class BraftApplication  extends BlockApplication{
+public class BraftApplication extends BlockApplication {
 
     BraftContext braftContext;
+    BraftMiner miner ;
     @Override
     public void init(LycoinContext context) {
 
-
-        HttpNetwork network =new HttpNetwork(context);
-
-        ConfigHolder holder =new ConfigHolder();
-        holder.setTimeout(10000);
-        holder.setRandomTimeoutLimit(5000);
-
-        BraftNode my =new BraftNode(context.getConfig().getIp(),context.getConfig().getHttpPort());
-        holder.setMy(my);
-
-        List<Peer> list = context.getConfig().getPeers();
-        List<INode> nodes =new ArrayList<>();
-        for (int i = 0; i < list.size(); i++) {
-            BraftNode node =new BraftNode(list.get(i).getIp(),list.get(i).getHttpPort());
-            nodes.add(node);
-            network.addSource(node);
-        }
-        holder.setNodes(nodes);
-
-
-
-
-
-
-        AbstratBraftNet net = new AbstratBraftNet() {
-            @Override
-            public int sendMessageToAll(Object o) throws SendMessageException {
-
-                System.out.println( "send--"+o.toString());
-                MessageBraft messageBraft =new MessageBraft(o);
-                network.broadcast(messageBraft);
-                return 0;
-            }
-
-            @Override
-            public void sendMessageToOne(INode node, Object o) throws SendMessageException {
-                System.out.println("send--"+o.toString());
-                MessageBraft messageBraft =new MessageBraft(o);
-                network.sendMessage((BraftNode)node,messageBraft);
-            }
-
-        };
-
-
-
-
         try {
-            braftContext =new BraftContext();
-            braftContext.init(holder,net);
 
 
-            network.handler(new IMessageHandler<MessageBraft>() {
+
+
+
+            /**
+             * 初始化投票网络
+             */
+            HttpNetwork network =new HttpNetwork(context);
+
+            ConfigHolder holder =new ConfigHolder();
+            holder.setTimeout(10000);
+            holder.setRandomTimeoutLimit(5000);
+
+            BraftNode my =new BraftNode(context.getConfig().getIp(),context.getConfig().getHttpPort());
+            holder.setMy(my);
+
+            List<Peer> list = context.getConfig().getPeers();
+            List<INode> nodes =new ArrayList<>();
+            for (int i = 0; i < list.size(); i++) {
+                BraftNode node =new BraftNode(list.get(i).getIp(),list.get(i).getHttpPort());
+                nodes.add(node);
+                network.addSource(node);
+            }
+            holder.setNodes(nodes);
+
+
+            AbstratBraftNet net = new AbstratBraftNet() {
                 @Override
-                public void handle(ISource source, MessageBraft messageBraft) {
-                    Object o = messageBraft.getBraft();
-                    try{
-                        System.out.println("recive--"+o.toString());
-                        net.handleMessage(o);
+                public int sendMessageToAll(Object o) throws SendMessageException {
 
-                    }catch (Exception err){
-                        System.out.println(err.getMessage());
-                    }
+                    System.out.println( "send--"+o.toString());
+                    MessageBraft messageBraft =new MessageBraft(o);
+                    network.broadcast(messageBraft);
+                    return 0;
                 }
 
+                @Override
+                public void sendMessageToOne(INode node, Object o) throws SendMessageException {
+                    System.out.println("send--"+o.toString());
+                    MessageBraft messageBraft =new MessageBraft(o);
+                    network.sendMessage((BraftNode)node,messageBraft);
+                }
+
+            };
+
+            braftContext =new BraftContext();
+            braftContext.init(holder,net);
+            /**
+             * 初始化矿机
+             */
+            miner = new BraftMiner(braftContext);
+            context.setMiner(miner);
+
+            /**
+             * 初始化通信网络
+             */
+            NettyNetwork nettyNetwork =new NettyNetwork(context);
+            context.addNetwork(nettyNetwork);
+            context.addNetwork(network);
+
+
+            GlobalEventExecutor.INSTANCE.addEventListener(new IEventListener<Event<MessageBraft>>() {
+                @Override
+                public void handle(Event<MessageBraft> event) {
+
+                    MessageBraft messageBlock = event.getData();
+
+                    try {
+                        System.out.println(messageBlock.getBraft().toString());
+                        net.handleMessage(messageBlock.getBraft());
+                    }
+                    catch (Exception err){
+
+                    }
+                }
             });
 
 
 
+            GlobalEventExecutor.INSTANCE.addEventListener(new IEventListener<Event<MessageBlock>>() {
+                @Override
+                public void handle(Event<MessageBlock> event) {
 
-            network.setup();
+                    MessageBlock messageBlock = event.getData();
+                    if(messageBlock.getTag().equals("find")){
+                        messageBlock.setTag("broadcast");
+                        nettyNetwork.broadcast(messageBlock);
+                    }
+
+                }
+            });
+
+            GlobalEventExecutor.INSTANCE.addEventListener(new IEventListener<Event<AuthorizationInfo>>() {
+                @Override
+                public void handle(Event<AuthorizationInfo> event) {
+                    if(event.getSource()==null){
+                        GlobalEventExecutor.INSTANCE.dispatch(new Event<>(event.getSource(),new MessageTransaction(event.getData())));
+                        nettyNetwork.broadcast(new MessageTransaction(event.getData()));
+                    }
+                }
+            });
+
+//            GlobalEventExecutor.INSTANCE.addEventListener(new IEventListener<Event<MessageTransaction>>() {
+//                @Override
+//                public void handle(Event<MessageTransaction> event) {
+//                    System.out.println("receive a transaction id"+event.getData().getTransaction().getId());
+//                    nettyNetwork.broadcast(event.getData());
+//                }
+//            });
+
+            GlobalEventExecutor.INSTANCE.addEventListener(new IEventListener<Event<MessageRequestBlock>>() {
+                @Override
+                public void handle(Event<MessageRequestBlock> event) {
+                    //GlobalEventExecutor.INSTANCE.dispatch(event);
+                    if(event.getSource()==null){
+                        System.out.println("request a block id="+event.getData().getHash());
+                        nettyNetwork.broadcast(event.getData());
+                    }
+
+                }
+            });
+
+
+
+            HttpApiServer httpApiServer =new HttpApiServer(miner);
+            httpApiServer.run();
 
         }catch (Exception err){
 
         }
 
-        this.handler(new MessageHandler<MessageBlock>() {
-            @Override
-            public void handle(IPeerNetwork network, IMessageSource source, MessageBlock message) {
-                Block block = message.getBlock();
-                if(context.getChain().accept(block)){
-                    System.out.println(message.toString());
-                    message.setTag("broadcast");
-                    network.broadcast(message);
-                }
-
-            }
-        });
-
-        /**
-         * 请求块消息处理
-         */
-        this.handler(new MessageHandler<MessageRequestBlock>() {
-            @Override
-            public void handle(IPeerNetwork network,IMessageSource source, MessageRequestBlock message) {
-                System.out.println(message.toString());
-                String hash = message.getHash();
-                Block block = context.getChain().findBlock(hash);
-                if(block!=null){
-                    MessageBlock messageBlock =new MessageBlock("broadcast",block);
-                    network.broadcast(messageBlock);
-                }
-            }
-        });
-
-        /**
-         * 交易消息处理
-         *
-         */
-        this.handler(new MessageHandler<MessageTransaction>() {
-            @Override
-            public void handle(IPeerNetwork network, IMessageSource source, MessageTransaction message) {
-                ITransaction transaction = message.getTransaction();
-                if(context.getTransactions().addTransaction(transaction)) {
-                    network.broadcast(message);
-                }
-            }
-        });
-
-
 
 
     }
 
-    @Override
+
     public void run() {
 
         new Thread(new Runnable() {
             @Override
             public void run() {
-                while (true){
-                    try{
-                        Thread.sleep(3000);
-                        if(braftContext.getLeader().equals(braftContext.getMy()) && context.getTransactions().getTransactions().size()>0){
-                            Block block = context.getChain().getNextBlock(context);
-                            MessageBlock messageBlock =new MessageBlock("find",block);
-                            context.getNetwork().trigger(messageBlock,null);
-                        }
-
-                    }
-                    catch (Exception err){
-                        System.out.println(err.getMessage());
-                    }
-
-
+                try{
+                    miner.run();
+                }
+                catch (Exception err){
+                    System.out.println(err.getMessage());
                 }
             }
         }).start();

@@ -1,19 +1,29 @@
 package com.ying.cloud.lycoin.net.http;
 
-import com.ying.cloud.lycoin.net.IMessage;
-import com.ying.cloud.lycoin.net.ISource;
-import com.ying.cloud.lycoin.utils.ByteArrayUtils;
-import com.ying.cloud.lycoin.utils.HttpUtils;
+import com.ying.cloud.lycoin.net.Source;
 
-import java.util.HashMap;
-import java.util.Map;
-
-public class HttpSource implements ISource {
+public class HttpSource extends Source {
 
     protected String host;
 
     public HttpSource(String host, Integer port) {
         this.host = host;
+        this.port = port;
+    }
+
+    public String getHost() {
+        return host;
+    }
+
+    public void setHost(String host) {
+        this.host = host;
+    }
+
+    public Integer getMyPort() {
+        return port;
+    }
+
+    public void setPort(Integer port) {
         this.port = port;
     }
 
@@ -27,13 +37,4 @@ public class HttpSource implements ISource {
 
     private String name;
 
-    @Override
-    public void send(IMessage message) {
-        byte[] bytes = ByteArrayUtils.encode(message);
-        String msg = org.apache.commons.codec.binary.Base64.encodeBase64String(bytes);
-        String url  = "http://"+host+":"+port+"?action=message";
-        Map<String,String> data = new HashMap<>();
-        data.put("message",msg);
-        HttpUtils.doPost(url,data);
-    }
 }
