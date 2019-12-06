@@ -18,26 +18,14 @@ public class BlockChain {
     private static final int BLOCK_GENERATION_INTERVAL  = 60*1000;
     private static final int DIFFICULTY_ADJUSTMENT_INTERVAL = 10;
 
-    public synchronized List<Block> getChain() {
-        return chain;
-    }
-
-    public synchronized void setChain(List<Block> chain) {
-        this.chain.clear();
-        this.chain.addAll(chain);
-    }
 
     private Block root;
-    private  List<Block> chain;
     private  List<Branch> branches;
 
     private HashMap<String,Block> acceptedBlocks;
     public  BlockChain(){
-        chain =new ArrayList<>();
-        Collections.synchronizedList(chain);
-        root = createRoot();
-        chain.add(root);
 
+        root = createRoot();
         branches = new ArrayList<>();
         acceptedBlocks = new HashMap<>();
     }
@@ -69,9 +57,9 @@ public class BlockChain {
     }
 
     public synchronized long getDifficulty(){
-        Block last = chain.get(chain.size()-1);
+        Block last = getBestLastBlock();
         if(last.getIndex()!=0&&last.getIndex()%DIFFICULTY_ADJUSTMENT_INTERVAL==0){
-            Block prevAdjustmentBlock = chain.get(chain.size()-DIFFICULTY_ADJUSTMENT_INTERVAL);
+            Block prevAdjustmentBlock = findPrevByN(DIFFICULTY_ADJUSTMENT_INTERVAL,last);
             long timeExpected = DIFFICULTY_ADJUSTMENT_INTERVAL*BLOCK_GENERATION_INTERVAL;
             long timeTaken = last.getTimestamp()-prevAdjustmentBlock.getTimestamp();
             if(timeTaken<timeExpected/2){
@@ -81,6 +69,15 @@ public class BlockChain {
             }
         }
         return last.getDifficulty();
+    }
+
+    private synchronized Block findPrevByN(int n,Block block){
+        Block prev =block;
+        for (int i = 0; i < n; i++) {
+            prev = findBlock(block.getPreviousHash());
+            if(prev==null) return null;
+        }
+        return prev;
     }
 
     private synchronized boolean isHashMatchesDifficulty(String hash,long difficulty){
@@ -247,35 +244,15 @@ public class BlockChain {
 
         return ( block.getTimestamp() - diff <current ) && ( prev.getTimestamp() - diff < block.getTimestamp() );
     }
-    public synchronized static boolean validNewChain(List<Block> chain){
-        if(chain.size()<=0){
-            return  false;
-        }
-
-        Block prev= chain.get(0);
-        for (int i = 1; i <chain.size() ; i++) {
-            Block block= chain.get(i);
-            if(!validBlock(prev,block)) return false;
-            prev=block;
-        }
-
-        return true;
-    }
-
 
     public synchronized  int size(){
-        return chain.size();
+        Block block = getBestLastBlock();
+        if(block!=null){
+            return  block.getIndex().intValue();
+        }
+        return 1;
     }
 
-    public synchronized boolean replace(BlockChain newChain){
-        if(newChain.size()<=0) return false;
-        if(this.size()>newChain.size()) return  false;
-
-        if(!getRoot().getHash().equals(newChain.getRoot().getHash())) return false;
-
-        setChain(newChain.getChain());
-        return  true;
-    }
 
 
     public synchronized boolean accept(Block block){
@@ -313,7 +290,6 @@ public class BlockChain {
         Branch newBranch = new Branch();
         newBranch.addBlock(block);
         branches.add(newBranch);
-
 
         return  true;
     }
