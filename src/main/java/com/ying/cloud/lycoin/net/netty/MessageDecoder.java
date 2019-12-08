@@ -1,6 +1,6 @@
 package com.ying.cloud.lycoin.net.netty;
 
-import com.ying.cloud.lycoin.models.Message;
+import com.ying.cloud.lycoin.net.Message;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToMessageDecoder;

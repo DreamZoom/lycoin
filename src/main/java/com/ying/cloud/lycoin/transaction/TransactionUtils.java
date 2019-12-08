@@ -4,10 +4,10 @@ import com.ying.cloud.lycoin.models.Account;
 
 public class TransactionUtils {
     private static final long COINBASE_AMOUNT =50;
-    public static Transaction base(Account account){
+    public static TransactionCoin base(Account account){
 
         try{
-            Transaction transaction =new Transaction();
+            TransactionCoin transaction =new TransactionCoin();
             transaction.setId("TX"+System.currentTimeMillis());
             TransactionOut out =new TransactionOut(account.getPublicKey(),COINBASE_AMOUNT);
             transaction.addOutput(out);

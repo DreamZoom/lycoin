@@ -15,8 +15,8 @@ public class LycoinApplication extends BlockApplication {
 //                Block block = message.getBlock();
 //                if(context.getChain().accept(block)){
 //
-//                    List<Transaction> list = block.getBody().map((iTransaction)->{
-//                        return (Transaction)iTransaction;
+//                    List<TransactionCoin> list = block.getBody().map((iTransaction)->{
+//                        return (TransactionCoin)iTransaction;
 //                    });
 //
 //                    context.getTransactions().updateUnspentTransactionOut(list);
@@ -52,7 +52,7 @@ public class LycoinApplication extends BlockApplication {
 //        this.handler(new IMessageHandler<MessageTransaction>() {
 //            @Override
 //            public void handle(ISource source, MessageTransaction message) {
-//                ITransaction transaction = message.getTransaction();
+//                Transaction transaction = message.getTransaction();
 //                if(context.getTransactions().addTransaction(transaction)) {
 //                    context.getNetwork().broadcast(message);
 //                }

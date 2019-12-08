@@ -1,8 +1,6 @@
 package com.ying.cloud.lycoin.net;
 
 
-import com.ying.cloud.lycoin.models.Message;
-
 public interface INetwork {
     void setup();
     void broadcast(Message message);

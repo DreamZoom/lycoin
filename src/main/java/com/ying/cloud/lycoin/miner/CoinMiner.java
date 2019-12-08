@@ -1,56 +1,108 @@
 package com.ying.cloud.lycoin.miner;
-
-import com.ying.cloud.lycoin.event.GlobalEventExecutor;
 import com.ying.cloud.lycoin.merkle.MerkleNode;
+import com.ying.cloud.lycoin.merkle.MerkleUtils;
+import com.ying.cloud.lycoin.models.Account;
 import com.ying.cloud.lycoin.models.Block;
 import com.ying.cloud.lycoin.models.BlockChain;
-import com.ying.cloud.lycoin.net.events.MessageEvent;
-import com.ying.cloud.lycoin.net.message.MessageBlock;
+import com.ying.cloud.lycoin.net.Message;
+import com.ying.cloud.lycoin.net.IMessageHandler;
+import com.ying.cloud.lycoin.transaction.TransactionUtils;
 import com.ying.cloud.lycoin.utils.SystemUtils;
 
-public class CoinMiner extends Miner {
+import java.util.ArrayList;
+import java.util.List;
+
+public class CoinMiner extends Miner implements IMessageHandler {
+
+    public Account getAccount() {
+        return account;
+    }
+
+    public void setAccount(Account account) {
+        this.account = account;
+    }
+
+    private Account account;
     @Override
-    public void run() throws Exception {
-        while (true){
+    public void run() {
 
-            try{
 
-                if(condition()){
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
 
-                    System.out.println("i am a loader ,i begin find block");
+                while (true){
 
-                    String ip = SystemUtils.getLocalAddress();
-                    Block last = chain.getBestLastBlock();
-                    Block block =new Block();
-                    block.setIndex(last.getIndex()+1);
-                    block.setPreviousHash(last.getHash());
-                    block.setData(chain.getRoot().getHash());
-                    block.setIp(ip);
-                    block.setTimestamp(System.currentTimeMillis());
-                    block.setNonce(1L);
+                    try{
 
-                    MerkleNode data = pack();
+                        if(condition()){
+                            try{
+                                System.out.println("i am a loader ,i begin find block");
 
-                    block.setBody(data);
+                                String ip = SystemUtils.getLocalAddress();
+                                Block last = chain.getBestLastBlock();
+                                Block block =new Block();
+                                block.setIndex(last.getIndex()+1);
+                                block.setPreviousHash(last.getHash());
+                                block.setData(chain.getRoot().getHash());
+                                block.setIp(ip);
+                                block.setTimestamp(System.currentTimeMillis());
+                                block.setNonce(1L);
 
-                    long difficulty = chain.getDifficulty();
-                    block.setDifficulty(difficulty);
+                                MerkleNode data = pack();
+                                block.setBody(data);
 
-                    String hash = BlockChain.calculateHash(block);
-                    block.setHash(hash);
+                                long difficulty = chain.getDifficulty();
+                                block.setDifficulty(difficulty);
 
-                    MessageBlock messageBlock =new MessageBlock("find",block);
-                    MessageEvent<MessageBlock> event =new MessageEvent(null,block);
-                    GlobalEventExecutor.INSTANCE.dispatch(event);
+                                String hash = BlockChain.calculateHash(block);
+                                block.setHash(hash);
+
+                                if(accept(block)){
+                                    transactions.clearTransaction();
+                                    adapter.onFindBlock(block);
+                                }
+
+                            }catch (Exception error){
+                                System.out.println(error.getMessage());
+                            }
+
+                        }
+
+
+                    }
+                    catch (Exception err){
+                        System.out.println(err.getMessage());
+                    }
+                    finally {
+                        try {
+                            Thread.sleep(3000);
+                        }
+                        catch (Exception error){}
+                    }
+
+
                 }
 
-
             }
-            catch (Exception err){
-                System.out.println(err.getMessage());
-            }
+        }).start();
 
-            Thread.sleep(3000);
+    }
+
+    @Override
+    public MerkleNode pack() {
+        List<MerkleNode> nodes = new ArrayList<>();
+        nodes.add(TransactionUtils.base(account).getMerkleNode());
+        for (int i = 0; i < transactions.getTransactions().size(); i++) {
+            nodes.add(transactions.getTransactions().get(i).getMerkleNode());
         }
+        MerkleNode node = MerkleUtils.tree(nodes);
+        node.encode();
+        return node;
+    }
+
+    @Override
+    public void handle(Object source, Message message) {
+        System.out.println(message.getType());
     }
 }

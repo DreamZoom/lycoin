@@ -4,7 +4,7 @@ import com.ying.cloud.lycoin.crypto.SHA256;
 import com.ying.cloud.lycoin.merkle.MerkleDataNode;
 import com.ying.cloud.lycoin.merkle.MerkleNode;
 
-public class AuthorizationInfo extends MerkleDataNode implements ITransaction{
+public class AuthorizationInfo extends MerkleDataNode implements Transaction {
     @Override
     public String toHashString() {
         return SHA256.encode(this.from+this.to+this.system+this.username+this.seconds+this.timestamp);

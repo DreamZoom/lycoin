@@ -1,10 +1,7 @@
 package com.ying.cloud.lycoin;
 
 import com.google.gson.Gson;
-import com.ying.cloud.lycoin.event.Event;
-import com.ying.cloud.lycoin.event.GlobalEventExecutor;
 import com.ying.cloud.lycoin.miner.Miner;
-import com.ying.cloud.lycoin.miner.TransactionEvent;
 import com.ying.cloud.lycoin.transaction.AuthorizationInfo;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Request;
@@ -37,7 +34,7 @@ public class HttpApiServer {
 
                     try{
                         AuthorizationInfo authorizationInfo =mapper(AuthorizationInfo.class,request);
-                        GlobalEventExecutor.INSTANCE.dispatch(new Event<>(null,authorizationInfo));
+
                     }
                     catch (Exception error){
                         response.getWriter().write(error.getMessage());

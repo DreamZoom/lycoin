@@ -1,7 +1,6 @@
 package com.ying.cloud.lycoin.transaction;
 
 import com.ying.cloud.lycoin.models.Account;
-import com.ying.cloud.lycoin.models.Block;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -13,17 +12,17 @@ public class TransactionStore {
         unspentTransactionOuts =new ArrayList<>();
     }
 
-    public synchronized List<ITransaction> getTransactions() {
+    public synchronized List<Transaction> getTransactions() {
         return transactions;
     }
 
-    public synchronized void setTransactions(List<ITransaction> transactions) {
+    public synchronized void setTransactions(List<Transaction> transactions) {
         this.transactions = transactions;
     }
 
-    private List<ITransaction> transactions;
+    private List<Transaction> transactions;
 
-    public synchronized boolean addTransaction(ITransaction transaction){
+    public synchronized boolean addTransaction(Transaction transaction){
         for (int i = 0; i < transactions.size(); i++) {
             if(transaction.getId().equals(transaction.getId())) return false;
         }
@@ -51,7 +50,7 @@ public class TransactionStore {
     }
 
 
-    public synchronized void updateUnspentTransactionOut(List<Transaction> transactions){
+    public synchronized void updateUnspentTransactionOut(List<TransactionCoin> transactions){
 
         for (int i = 0; i < transactions.size(); i++) {
             for (int j = 0; j < transactions.get(i).getInputs().size(); j++) {
@@ -74,7 +73,7 @@ public class TransactionStore {
     }
 
 
-    public synchronized Transaction tx(Account account, TransactionOut out) throws Exception{
+    public synchronized TransactionCoin tx(Account account, TransactionOut out) throws Exception{
         List<TransactionIn> transactionIns =new ArrayList<>();
         List<TransactionOut> outs =new ArrayList<>();
         long amount =0;
@@ -102,7 +101,7 @@ public class TransactionStore {
         }
 
 
-        Transaction transaction =new Transaction();
+        TransactionCoin transaction =new TransactionCoin();
         transaction.setInputs(transactionIns);
         transaction.setOutputs(outs);
         transaction.sign(account);

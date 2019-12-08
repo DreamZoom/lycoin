@@ -10,6 +10,8 @@ public class MerkleUtils {
     }
 
     public static MerkleNode tree(List<MerkleNode> nodes){
+
+        if(nodes.size()==0) return null;
         int size = nodes.size()%2;
         if(size==0){
             size = nodes.size()/2;

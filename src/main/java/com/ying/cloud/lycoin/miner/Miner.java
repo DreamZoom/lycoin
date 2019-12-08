@@ -1,23 +1,19 @@
 package com.ying.cloud.lycoin.miner;
 
-import com.ying.cloud.lycoin.event.Event;
-import com.ying.cloud.lycoin.event.GlobalEventExecutor;
-import com.ying.cloud.lycoin.event.IEventListener;
+import com.ying.cloud.lycoin.event.Emiter;
 import com.ying.cloud.lycoin.merkle.MerkleNode;
 import com.ying.cloud.lycoin.merkle.MerkleUtils;
 import com.ying.cloud.lycoin.models.Block;
 import com.ying.cloud.lycoin.models.BlockChain;
-import com.ying.cloud.lycoin.net.message.MessageBlock;
-import com.ying.cloud.lycoin.net.message.MessageTransaction;
-import com.ying.cloud.lycoin.transaction.ITransaction;
 import com.ying.cloud.lycoin.transaction.Transaction;
+import com.ying.cloud.lycoin.transaction.TransactionStore;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class Miner implements IMiner {
+public abstract class Miner extends Emiter implements IMiner {
 
-    protected List<ITransaction> transactions;
+    protected TransactionStore transactions;
 
     public BlockChain getChain() {
         return chain;
@@ -25,31 +21,19 @@ public class Miner implements IMiner {
 
     protected BlockChain chain;
 
+    public void setAdapter(IMinerEventAdapter adapter) {
+        this.adapter = adapter;
+    }
+
+    protected IMinerEventAdapter adapter;
+
     public Miner(){
-        transactions = new ArrayList<>();
+        transactions = new TransactionStore();
         chain = new BlockChain();
-
-        GlobalEventExecutor.INSTANCE.addEventListener(new IEventListener<Event<MessageTransaction>>() {
-            @Override
-            public void handle(Event<MessageTransaction> event) {
-                transactions.add(event.getData().getTransaction());
-            }
-        });
-
-        GlobalEventExecutor.INSTANCE.addEventListener(new IEventListener<Event<MessageBlock>>() {
-            @Override
-            public void handle(Event<MessageBlock> event) {
-                if(chain.accept(event.getData().getBlock())){
-                    System.out.println("receive a block");
-                }
-            }
-        });
     }
 
     @Override
-    public void run() throws Exception {
-
-    }
+    public abstract void run();
 
     @Override
     public boolean condition() {
@@ -59,12 +43,22 @@ public class Miner implements IMiner {
     @Override
     public MerkleNode pack() {
         List<MerkleNode> nodes = new ArrayList<>();
-        for (int i = 0; i < transactions.size(); i++) {
-            nodes.add(transactions.get(i).getMerkleNode());
+        for (int i = 0; i < transactions.getTransactions().size(); i++) {
+            nodes.add(transactions.getTransactions().get(i).getMerkleNode());
         }
         MerkleNode node = MerkleUtils.tree(nodes);
         node.encode();
         return node;
+    }
+
+    @Override
+    public boolean accept(Block block) {
+        return chain.accept(block);
+    }
+
+    @Override
+    public boolean accept(Transaction transaction) {
+        return transactions.addTransaction(transaction);
     }
 
 

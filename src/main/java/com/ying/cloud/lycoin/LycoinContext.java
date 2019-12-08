@@ -1,12 +1,9 @@
 package com.ying.cloud.lycoin;
 
 import com.ying.cloud.lycoin.config.BlockConfig;
-import com.ying.cloud.lycoin.crypto.HashEncoder;
 import com.ying.cloud.lycoin.miner.IMiner;
 import com.ying.cloud.lycoin.models.Account;
-import com.ying.cloud.lycoin.models.BlockChain;
 import com.ying.cloud.lycoin.net.INetwork;
-import com.ying.cloud.lycoin.net.Network;
 import com.ying.cloud.lycoin.transaction.TransactionStore;
 
 import java.util.ArrayList;

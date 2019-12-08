@@ -1,41 +1,74 @@
 package com.ying.cloud.lycoin.net.netty;
 
-import com.ying.cloud.lycoin.LycoinContext;
+import com.ying.cloud.lycoin.config.BlockConfig;
 import com.ying.cloud.lycoin.config.Peer;
-import com.ying.cloud.lycoin.models.Message;
+import com.ying.cloud.lycoin.net.Message;
 import com.ying.cloud.lycoin.net.*;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.bootstrap.ServerBootstrap;
+import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.channel.ChannelInitializer;
+import io.netty.channel.group.ChannelGroup;
+import io.netty.channel.group.DefaultChannelGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
 import io.netty.handler.codec.LengthFieldPrepender;
+import io.netty.util.concurrent.GlobalEventExecutor;
 
 import java.util.List;
 
-public class NettyNetwork extends Network {
+public class NettyNetwork extends PeerNode {
+    private BlockConfig config;
+    private ChannelGroup channelGroup ;
 
-    public NettyNetwork(LycoinContext context) {
-        this.context = context;
+
+    public NettyNetwork(BlockConfig config) {
+        this.config = config;
+        this.channelGroup = new DefaultChannelGroup(GlobalEventExecutor.INSTANCE);
     }
-
-    private LycoinContext context;
-
 
     @Override
     public void setup() {
 
+        ChannelInboundHandlerAdapter serverAdapter =new ChannelInboundHandlerAdapter(){
+            @Override
+            public void channelActive(ChannelHandlerContext ctx) throws Exception {
+                channelGroup.add(ctx.channel());
+            }
 
-        ChannelInboundHandlerAdapter channelInboundHandlerAdapter =new NettyChannelInboundHandler(this);
+            @Override
+            public void channelInactive(ChannelHandlerContext ctx) throws Exception {
+                channelGroup.remove(ctx.channel());
+            }
+
+            @Override
+            public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
+                handler.handle(ctx.channel(),(Message)msg);
+            }
+        };
+        ChannelInboundHandlerAdapter clientAdapter =new ChannelInboundHandlerAdapter(){
+            @Override
+            public void channelActive(ChannelHandlerContext ctx) throws Exception {
+                channelGroup.add(ctx.channel());
+            }
+
+            @Override
+            public void channelInactive(ChannelHandlerContext ctx) throws Exception {
+                channelGroup.remove(ctx.channel());
+            }
+
+            @Override
+            public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
+                handler.handle(ctx.channel(),(Message)msg);
+            }
+        };
 
         ServerBootstrap serverBootstrap = new ServerBootstrap();
-
         NioEventLoopGroup boos = new NioEventLoopGroup();
         NioEventLoopGroup worker = new NioEventLoopGroup();
-
         serverBootstrap
                 .group(boos, worker)
                 .channel(NioServerSocketChannel.class)
@@ -50,12 +83,12 @@ public class NettyNetwork extends Network {
 
                         ch.pipeline().addLast(new LengthFieldBasedFrameDecoder(1024*500,0,4,0,4));
                         ch.pipeline().addLast(new MessageDecoder());
-                        ch.pipeline().addLast(channelInboundHandlerAdapter);
+                        ch.pipeline().addLast(serverAdapter);
                     }
                 });
 
 
-        int port = context.getConfig().getServerPort();
+        int port = config.getServerPort();
         serverBootstrap.bind(port);
 
 
@@ -73,13 +106,11 @@ public class NettyNetwork extends Network {
 
                         ch.pipeline().addLast(new LengthFieldBasedFrameDecoder(1024*500,0,4,0,4));
                         ch.pipeline().addLast(new MessageDecoder());
-                        ch.pipeline().addLast(channelInboundHandlerAdapter);
+                        ch.pipeline().addLast(clientAdapter);
                     }
                 });
 
-
-
-        List<Peer> peers = context.getConfig().getPeers();
+        List<Peer> peers = config.getPeers();
         for (int i = 0; i < peers.size(); i++) {
             Peer peer = peers.get(i);
             ConnectionListener listener = new ConnectionListener(bootstrap,peer.getIp(),peer.getServerPort());
@@ -87,18 +118,19 @@ public class NettyNetwork extends Network {
         }
     }
 
-
+    @Override
+    public void broadcast(Message message) {
+        super.broadcast(message);
+    }
 
     @Override
-    public void sendMessage(Source source, Message message) {
-
+    public void send(Source source, Message message) {
         ChannelSource channelSource = (ChannelSource)source;
-        channelSource.getChannel().writeAndFlush(message);
+        if(channelSource!=null){
+            channelSource.getChannel().writeAndFlush(message);
+        }
     }
 
-    @Override
-    public void removeSource(Source source) {
-        super.removeSource(source);
-    }
+
 
 }

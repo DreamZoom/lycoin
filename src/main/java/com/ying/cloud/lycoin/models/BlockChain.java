@@ -4,8 +4,8 @@ import com.ying.cloud.lycoin.LycoinContext;
 import com.ying.cloud.lycoin.crypto.SHA256;
 import com.ying.cloud.lycoin.merkle.MerkleNode;
 import com.ying.cloud.lycoin.merkle.MerkleUtils;
-import com.ying.cloud.lycoin.transaction.ITransaction;
 import com.ying.cloud.lycoin.transaction.Transaction;
+import com.ying.cloud.lycoin.transaction.TransactionCoin;
 import com.ying.cloud.lycoin.transaction.TransactionUtils;
 import org.apache.commons.codec.binary.BinaryCodec;
 import org.apache.commons.codec.binary.Hex;
@@ -125,10 +125,10 @@ public class BlockChain {
     }
 
     public MerkleNode getDataHash(LycoinContext context){
-        Transaction transaction = TransactionUtils.base(context.getAccount());
+        TransactionCoin transaction = TransactionUtils.base(context.getAccount());
         //transaction.sign(context.getAccount());
 
-        List<ITransaction> transactions = context.getTransactions().getTransactions();
+        List<Transaction> transactions = context.getTransactions().getTransactions();
         List<MerkleNode> nodes = new ArrayList<>();
         nodes.add(transaction.getMerkleNode());
 

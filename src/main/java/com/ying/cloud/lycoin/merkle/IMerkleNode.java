@@ -1,6 +1,6 @@
 package com.ying.cloud.lycoin.merkle;
 
-import com.ying.cloud.lycoin.transaction.ITransaction;
+import com.ying.cloud.lycoin.transaction.Transaction;
 
 import java.util.List;
 import java.util.function.Function;
@@ -11,5 +11,5 @@ public interface IMerkleNode {
     boolean verify();
     void encode();
 
-    <T> List<T> map(Function<ITransaction,T> callback);
+    <T> List<T> map(Function<Transaction,T> callback);
 }
