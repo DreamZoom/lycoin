@@ -53,7 +53,7 @@ public class NettyServerNode extends PeerNode<ChannelSource> {
                             public void channelActive(ChannelHandlerContext ctx) throws Exception {
 
                                 NioSocketChannel nioSocketChannel =(NioSocketChannel)ctx.channel();
-                                String host=nioSocketChannel.remoteAddress().getHostName();
+                                String host=nioSocketChannel.remoteAddress().getAddress().getHostAddress();
                                 int port = nioSocketChannel.localAddress().getPort();
                                 ChannelSource source =new ChannelSource(host,port,ctx.channel());
                                 System.out.println(source);
