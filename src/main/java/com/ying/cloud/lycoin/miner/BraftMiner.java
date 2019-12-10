@@ -11,6 +11,7 @@ import com.ying.cloud.lycoin.net.IMessageHandler;
 import com.ying.cloud.lycoin.net.messages.MsgBlock;
 import com.ying.cloud.lycoin.net.messages.MsgRequestBlock;
 import com.ying.cloud.lycoin.net.messages.MsgTransaction;
+import com.ying.cloud.lycoin.transaction.AuthorizationInfo;
 import com.ying.cloud.lycoin.utils.SystemUtils;
 
 public class BraftMiner extends Miner implements IMessageHandler {
@@ -70,11 +71,12 @@ public class BraftMiner extends Miner implements IMessageHandler {
                             String hash = BlockChain.calculateHash(block);
                             block.setHash(hash);
 
-                            if(accept(block)){
-                                context.getMy().setState(NodeState.FOLLOWER);
-                                transactions.clearTransaction();
-                                adapter.onFindBlock(block);
+                            synchronized (this){
+                                if(accept(block)){
+                                    context.getMy().setState(NodeState.FOLLOWER);
+                                }
                             }
+
                         }
                     }
                     catch (Exception err){
@@ -109,9 +111,17 @@ public class BraftMiner extends Miner implements IMessageHandler {
         }
 
         if(message instanceof MsgBlock){
-            if(accept(((MsgBlock) message).getBlock())) {
-                //adapter.onFindBlock(block);
+            synchronized (this){
+                if(accept(((MsgBlock) message).getBlock())) {
+                    //adapter.onFindBlock(block);
+                    Block block = ((MsgBlock) message).getBlock();
+                    block.getBody().iterator(iMerkleNode -> {
+                        AuthorizationInfo info =((AuthorizationInfo)iMerkleNode);
+                        transactions.removeTransaction(info.getId());
+                    });
+                }
             }
+
         }
 
         if(message instanceof MsgTransaction){

@@ -30,6 +30,12 @@ public class TransactionStore {
         return true;
     }
 
+    public synchronized boolean removeTransaction(String id){
+        return transactions.removeIf((t)->{
+            return t.getId().equals(id);
+        });
+    }
+
     public List<UnspentTransactionOut> getUnspentTransactionOuts() {
         return unspentTransactionOuts;
     }

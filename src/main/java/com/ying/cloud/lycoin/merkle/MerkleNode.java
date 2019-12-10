@@ -4,6 +4,7 @@ import com.ying.cloud.lycoin.transaction.Transaction;
 
 import java.io.Serializable;
 import java.util.List;
+import java.util.function.Consumer;
 import java.util.function.Function;
 
 public class MerkleNode implements IMerkleNode,Serializable {
@@ -33,7 +34,9 @@ public class MerkleNode implements IMerkleNode,Serializable {
     }
 
     @Override
-    public <T> List<T> map(Function<Transaction, T> callback) {
-        return null;
+    public void iterator(Consumer<IMerkleNode> consumer) {
+
     }
+
+
 }

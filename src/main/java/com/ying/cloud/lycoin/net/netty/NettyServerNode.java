@@ -41,8 +41,6 @@ public class NettyServerNode extends PeerNode<ChannelSource> {
                 .childHandler(new ChannelInitializer<NioSocketChannel>() {
                     @Override
                     protected void initChannel(NioSocketChannel ch) {
-                        System.out.println("accept a socket");
-
                         ch.config().setAllowHalfClosure(true);
                         ch.pipeline().addLast(new LengthFieldPrepender(4));
                         ch.pipeline().addLast(new MessageEncoder());
