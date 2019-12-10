@@ -7,10 +7,19 @@ import com.bitnum.braft.exception.SendMessageException;
 import com.bitnum.braft.net.AbstratBraftNet;
 import com.ying.cloud.lycoin.config.BlockConfig;
 import com.ying.cloud.lycoin.config.Peer;
+import com.ying.cloud.lycoin.miner.BraftMiner;
+import com.ying.cloud.lycoin.miner.IMinerEventAdapter;
+import com.ying.cloud.lycoin.models.Block;
 import com.ying.cloud.lycoin.net.IMessageHandler;
 import com.ying.cloud.lycoin.net.Message;
+import com.ying.cloud.lycoin.net.messages.MsgBlock;
+import com.ying.cloud.lycoin.net.messages.MsgBraft;
+import com.ying.cloud.lycoin.net.messages.MsgRequestBlock;
+import com.ying.cloud.lycoin.net.messages.MsgTransaction;
+import com.ying.cloud.lycoin.net.netty.ChannelSource;
 import com.ying.cloud.lycoin.net.netty.NettyClientNode;
 import com.ying.cloud.lycoin.net.netty.NettyServerNode;
+import com.ying.cloud.lycoin.transaction.Transaction;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -56,11 +65,11 @@ public class MainApplication {
 //        config3.setPeers(peers3);
 
         NettyServerNode serverNode =new NettyServerNode(config.getServerPort());
-        serverNode.setup();
+
 
 
         NettyClientNode clientNode =new NettyClientNode();
-        clientNode.setup();
+
 
 
 
@@ -74,8 +83,11 @@ public class MainApplication {
         List<INode> nodes =new ArrayList<>();
 
         for (int i = 0; i <config.getPeers().size() ; i++) {
-            nodes.add(new BraftNettyNode(config.getPeers().get(i).getIp(),config.getPeers().get(i).getServerPort()));
-            clientNode.connect(config.getPeers().get(i).getIp(),config.getPeers().get(i).getServerPort());
+            BraftNettyNode nettyNode = new BraftNettyNode(config.getPeers().get(i).getIp(),config.getPeers().get(i).getServerPort());
+            nodes.add(nettyNode);
+            clientNode.addSource(nettyNode);
+            serverNode.addSource(nettyNode);
+            //clientNode.connect(config.getPeers().get(i).getIp(),config.getPeers().get(i).getServerPort());
         }
 
         holder.setNodes(nodes);
@@ -88,45 +100,78 @@ public class MainApplication {
                 System.out.println( "send--"+o.toString());
 
 
-                clientNode.broadcast(new Message<>("braft",o));
+                clientNode.broadcast(new MsgBraft(o));
                 return 0;
             }
 
             @Override
             public void sendMessageToOne(INode node, Object o) throws SendMessageException {
                 System.out.println( "send--"+o.toString());
-                clientNode.send((BraftNettyNode)node,new Message<>("braft",o));
+                clientNode.send((BraftNettyNode)node,new MsgBraft(o));
             }
 
         };
 
         BraftContext braftContext =new BraftContext();
+        BraftMiner miner =new BraftMiner(braftContext);
+        miner.setAdapter(new IMinerEventAdapter() {
+            @Override
+            public void onFindBlock(Block block) {
+                System.out.println("block id equals "+block.getHash() +" and index equals "+block.getIndex());
+                clientNode.broadcast(new MsgBlock(block,"find"));
+            }
+
+            @Override
+            public void onLoseBlock(String hash) {
+                System.out.println("i lose block id equals "+hash +" , request it ");
+                clientNode.broadcast(new MsgRequestBlock(hash));
+            }
+
+            @Override
+            public void onAcceptTransaction(Transaction transaction) {
+                System.out.println("i accept a transaction id equals "+transaction.getId() +" , broadcast it ");
+                clientNode.broadcast(new MsgTransaction(transaction));
+            }
+        });
         IMessageHandler handler =new IMessageHandler() {
             @Override
             public void handle(Object source, Message message) {
-                if(message.getType().equals("braft")){
+                if(message instanceof MsgBraft){
                     try{
-                        System.out.println(message.getData());
-                        net.handleMessage(message.getData());
-
+                        System.out.println(((MsgBraft) message).getBraft());
+                        net.handleMessage(((MsgBraft) message).getBraft());
                     }
                     catch (Exception error){
-                        error.printStackTrace();
-
                         System.out.println(error.getMessage());
                     }
-
                 }
                 else {
-                    //miner.handle(source,message);
+                    miner.handle(source,message);
+                    if(message instanceof MsgRequestBlock){
+                        System.out.println("request a block ,id equals "+((MsgRequestBlock) message).getHash());
+                        clientNode.send((ChannelSource) source,message);
+                    }
+                    else{
+                        clientNode.broadcast(message);
+                    }
+
                 }
             }
         };
 
         serverNode.setHandler(handler);
-
+        //clientNode.setHandler(handler);
         try{
             braftContext.init(holder,net);
+
+            serverNode.setup();
+            clientNode.setup();
+            miner.run();
+
+            HttpApiServer apiServer =new HttpApiServer(miner);
+
+            apiServer.run();
+
         }
         catch (Exception err){
 

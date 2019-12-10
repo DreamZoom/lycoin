@@ -103,6 +103,6 @@ public class CoinMiner extends Miner implements IMessageHandler {
 
     @Override
     public void handle(Object source, Message message) {
-        System.out.println(message.getType());
+        //System.out.println(message.getType());
     }
 }

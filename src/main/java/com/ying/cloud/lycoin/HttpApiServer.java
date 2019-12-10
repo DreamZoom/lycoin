@@ -20,9 +20,13 @@ public class HttpApiServer {
     public HttpApiServer(Miner miner){
         this.miner = miner;
     }
-
     public void run(){
-        Server server = new Server(8189);
+        run(18188);
+    }
+
+
+    public void run(int port){
+        Server server = new Server(port);
         server.setAttribute("org.eclipse.jetty.server.Request.maxFormContentSize",-1);
 
         Handler handler =new AbstractHandler() {
@@ -34,6 +38,9 @@ public class HttpApiServer {
 
                     try{
                         AuthorizationInfo authorizationInfo =mapper(AuthorizationInfo.class,request);
+                        authorizationInfo.setNonce(System.currentTimeMillis());
+                        authorizationInfo.setId(authorizationInfo.toHashString());
+                        miner.accept(authorizationInfo);
 
                     }
                     catch (Exception error){

@@ -11,8 +11,12 @@ import com.ying.cloud.lycoin.miner.IMinerEventAdapter;
 import com.ying.cloud.lycoin.models.Block;
 import com.ying.cloud.lycoin.net.Message;
 import com.ying.cloud.lycoin.net.IMessageHandler;
+import com.ying.cloud.lycoin.net.messages.MsgBlock;
+import com.ying.cloud.lycoin.net.messages.MsgBraft;
+import com.ying.cloud.lycoin.net.messages.MsgRequestBlock;
 import com.ying.cloud.lycoin.net.netty.NettyClientNode;
 import com.ying.cloud.lycoin.net.netty.NettyServerNode;
+import com.ying.cloud.lycoin.transaction.Transaction;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -54,7 +58,7 @@ public class TestServer {
 
             for (int i = 0; i <config.getPeers().size() ; i++) {
                 nodes.add(new BraftNettyNode("127.0.0.1",config.getPeers().get(i).getServerPort()));
-                clientNode.connect("127.0.0.1",config.getPeers().get(i).getServerPort());
+                //clientNode.connect("127.0.0.1",config.getPeers().get(i).getServerPort());
             }
 
             holder.setNodes(nodes);
@@ -69,7 +73,7 @@ public class TestServer {
                     }
 
 
-                    clientNode.broadcast(new Message<>("braft",o));
+                    clientNode.broadcast(new MsgBraft(o));
                     return 0;
                 }
 
@@ -78,7 +82,7 @@ public class TestServer {
                     if(showMessage){
                         System.out.println( "send--"+o.toString());
                     }
-                    clientNode.send((BraftNettyNode)node,new Message<>("braft",o));
+                    clientNode.send((BraftNettyNode)node,new MsgBraft(o));
                 }
 
             };
@@ -94,12 +98,12 @@ public class TestServer {
             IMessageHandler handler =new IMessageHandler() {
                 @Override
                 public void handle(Object source, Message message) {
-                    if(message.getType().equals("braft")){
+                    if(message instanceof MsgBraft){
                         try{
                             if(showMessage){
-                                System.out.println(message.getData());
+                                System.out.println(((MsgBraft) message).getBraft());
                             }
-                            net.handleMessage(message.getData());
+                            net.handleMessage(((MsgBraft) message).getBraft());
 
                         }
                         catch (Exception error){
@@ -121,12 +125,17 @@ public class TestServer {
             miner.setAdapter(new IMinerEventAdapter(){
                 @Override
                 public void onFindBlock(Block block) {
-                    clientNode.broadcast(new Message<>("find",block));
+                    clientNode.broadcast(new MsgBlock(block,"find"));
                 }
 
                 @Override
                 public void onLoseBlock(String hash) {
-                    clientNode.broadcast(new Message<>("lose",hash));
+                    clientNode.broadcast(new MsgRequestBlock(hash));
+                }
+
+                @Override
+                public void onAcceptTransaction(Transaction transaction) {
+
                 }
             });
 

@@ -127,7 +127,7 @@ public class NettyNetwork extends PeerNode {
     public void send(Source source, Message message) {
         ChannelSource channelSource = (ChannelSource)source;
         if(channelSource!=null){
-            channelSource.getChannel().writeAndFlush(message);
+            channelSource.getSender().writeAndFlush(message);
         }
     }
 

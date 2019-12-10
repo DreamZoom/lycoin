@@ -53,12 +53,20 @@ public abstract class Miner extends Emiter implements IMiner {
 
     @Override
     public boolean accept(Block block) {
-        return chain.accept(block);
+        if(chain.accept(block)){
+            adapter.onFindBlock(block);
+            return true;
+        }
+        return false;
     }
 
     @Override
     public boolean accept(Transaction transaction) {
-        return transactions.addTransaction(transaction);
+        if(transactions.addTransaction(transaction)){
+            adapter.onAcceptTransaction(transaction);
+            return true;
+        }
+        return false;
     }
 
 

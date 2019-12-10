@@ -16,15 +16,26 @@ public class MessageEncoder extends MessageToMessageEncoder<Message> {
 
 
     public MessageEncoder() {
-        this.caches = new ArrayList<>();
+        this.msgIds = new ArrayList<>();
     }
 
-    List<byte[]> caches;
+    List<String> msgIds;
 
     @Override
     protected void encode(ChannelHandlerContext ctx, Message msg, List<Object> out) {
 
         try{
+
+
+            if(msgIds.contains(msg.getId())){
+                return;
+            }
+
+            msgIds.add(msg.getId());
+            if(msgIds.size()>512){
+                msgIds.remove(0);
+            }
+
             ByteArrayOutputStream outputStream =new ByteArrayOutputStream();
             ObjectOutputStream oos = new ObjectOutputStream(outputStream);
             oos.writeObject(msg);
@@ -35,14 +46,6 @@ public class MessageEncoder extends MessageToMessageEncoder<Message> {
             byte[] bytes = outputStream.toByteArray();
             buf.writeBytes(bytes);
 
-            if (caches.contains(bytes)) {
-
-                return;
-            }
-            caches.add(bytes);
-            if(caches.size()>256){
-                caches.remove(0);
-            }
             out.add(buf);
         }
         catch (Exception error){

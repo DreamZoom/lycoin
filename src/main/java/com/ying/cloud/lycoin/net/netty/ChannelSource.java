@@ -6,28 +6,32 @@ import io.netty.channel.ChannelHandlerContext;
 
 public class ChannelSource extends Source {
 
-    public ChannelSource(String host, int port, Channel channel) {
+    public ChannelSource(String host, int port) {
         this.host = host;
         this.port = port;
-        this.channel = channel;
     }
 
-    protected String host;
-    protected int port;
+    public String host;
+    public int port;
 
-    public Channel getChannel() {
-        return channel;
+    public Channel getReceiver() {
+        return receiver;
     }
 
-    public void setChannel(Channel channel) {
-        this.channel = channel;
+    public void setReceiver(Channel receiver) {
+        this.receiver = receiver;
     }
 
-    private Channel channel;
-
-    public ChannelSource(Channel channel){
-        this.channel = channel;
+    public Channel getSender() {
+        return sender;
     }
+
+    public void setSender(Channel sender) {
+        this.sender = sender;
+    }
+
+    private Channel receiver;
+    private Channel sender;
 
 
     @Override

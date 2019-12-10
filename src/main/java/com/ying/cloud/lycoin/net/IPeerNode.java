@@ -7,4 +7,5 @@ public interface IPeerNode<TSource extends Source> {
     void send(TSource source, Message message);
     void addSource(TSource source);
     void removeSource(TSource source);
+    TSource getSource(String id);
 }

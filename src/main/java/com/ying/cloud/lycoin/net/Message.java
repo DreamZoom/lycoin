@@ -2,7 +2,11 @@ package com.ying.cloud.lycoin.net;
 
 import java.io.Serializable;
 
-public class Message<TEntity extends Object> implements Serializable {
+public class Message implements Serializable {
+
+    public Message(){
+        setId("M"+System.currentTimeMillis());
+    }
 
 
     public String getId() {
@@ -14,39 +18,5 @@ public class Message<TEntity extends Object> implements Serializable {
     }
 
     private String id;
-
-    public TEntity getData() {
-
-        return data;
-    }
-
-    public void setData(TEntity data) {
-        this.data = data;
-    }
-
-    public Message(TEntity data) {
-        this.data = data;
-    }
-
-    private TEntity data;
-
-
-
-
-    public Message(String type,TEntity data) {
-        this.data = data;
-        this.type = type;
-    }
-
-    public String getType() {
-        return type;
-    }
-
-    public void setType(String type) {
-        this.type = type;
-    }
-
-    private String type;
-
 
 }

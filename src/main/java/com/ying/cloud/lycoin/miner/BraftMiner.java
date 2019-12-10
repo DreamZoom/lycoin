@@ -8,6 +8,9 @@ import com.ying.cloud.lycoin.models.BlockChain;
 import com.ying.cloud.lycoin.net.Message;
 import com.ying.cloud.lycoin.net.IMessageHandler;
 
+import com.ying.cloud.lycoin.net.messages.MsgBlock;
+import com.ying.cloud.lycoin.net.messages.MsgRequestBlock;
+import com.ying.cloud.lycoin.net.messages.MsgTransaction;
 import com.ying.cloud.lycoin.utils.SystemUtils;
 
 public class BraftMiner extends Miner implements IMessageHandler {
@@ -68,6 +71,7 @@ public class BraftMiner extends Miner implements IMessageHandler {
                             block.setHash(hash);
 
                             if(accept(block)){
+                                context.getMy().setState(NodeState.FOLLOWER);
                                 transactions.clearTransaction();
                                 adapter.onFindBlock(block);
                             }
@@ -99,9 +103,20 @@ public class BraftMiner extends Miner implements IMessageHandler {
 
     @Override
     public void handle(Object source, Message message) {
-        if("lose".equals(message.getType())){
-            Block block =  chain.findBlock(message.getData().toString());
+        if(message instanceof MsgRequestBlock){
+            Block block =  chain.findBlock(((MsgRequestBlock) message).getHash());
             adapter.onFindBlock(block);
         }
+
+        if(message instanceof MsgBlock){
+            if(accept(((MsgBlock) message).getBlock())) {
+                //adapter.onFindBlock(block);
+            }
+        }
+
+        if(message instanceof MsgTransaction){
+            transactions.addTransaction(((MsgTransaction) message).getTransaction());
+        }
+
     }
 }

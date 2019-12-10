@@ -9,7 +9,7 @@ public class BraftNettyNode extends ChannelSource implements INode {
     NodeState state;
 
     public BraftNettyNode(String host, int port) {
-        super(host, port, null);
+        super(host, port);
         state=NodeState.FOLLOWER;
     }
 

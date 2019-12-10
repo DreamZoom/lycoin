@@ -10,6 +10,7 @@ import com.ying.cloud.lycoin.miner.BraftMiner;
 import com.ying.cloud.lycoin.config.Peer;
 import com.ying.cloud.lycoin.net.Message;
 import com.ying.cloud.lycoin.net.http.HttpNetwork;
+import com.ying.cloud.lycoin.net.messages.MsgBraft;
 
 
 import java.util.ArrayList;
@@ -56,14 +57,14 @@ public class BraftApplication extends BlockApplication {
 
                     System.out.println( "send--"+o.toString());
 
-                    network.broadcast(new Message<>("braft",o));
+                    network.broadcast(new MsgBraft(o));
                     return 0;
                 }
 
                 @Override
                 public void sendMessageToOne(INode node, Object o) throws SendMessageException {
                     System.out.println("send--"+o.toString());
-                    network.send((BraftNode)node,new Message<>("braft",o));
+                    network.send((BraftNode)node,new MsgBraft(o));
                 }
 
             };

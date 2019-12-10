@@ -24,7 +24,7 @@ public class TransactionStore {
 
     public synchronized boolean addTransaction(Transaction transaction){
         for (int i = 0; i < transactions.size(); i++) {
-            if(transaction.getId().equals(transaction.getId())) return false;
+            if(transactions.get(i).getId().equals(transaction.getId())) return false;
         }
         transactions.add(transaction);
         return true;

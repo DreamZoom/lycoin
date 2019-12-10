@@ -7,7 +7,7 @@ import com.ying.cloud.lycoin.merkle.MerkleNode;
 public class AuthorizationInfo extends MerkleDataNode implements Transaction {
     @Override
     public String toHashString() {
-        return SHA256.encode(this.from+this.to+this.system+this.username+this.seconds+this.timestamp);
+        return SHA256.encode(this.from+this.to+this.system+this.username+this.seconds+this.timestamp+this.nonce);
     }
 
 
@@ -59,6 +59,12 @@ public class AuthorizationInfo extends MerkleDataNode implements Transaction {
         this.timestamp = timestamp;
     }
 
+
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    private String id;
     //授权人公钥
     private String from;
     //被授权人
@@ -76,9 +82,19 @@ public class AuthorizationInfo extends MerkleDataNode implements Transaction {
     //授权起始时间
     private Long timestamp;
 
+    public Long getNonce() {
+        return nonce;
+    }
+
+    public void setNonce(Long nonce) {
+        this.nonce = nonce;
+    }
+
+    private Long nonce;
+
     @Override
     public String getId() {
-        return toHashString();
+        return this.id;
     }
 
     @Override

@@ -4,6 +4,7 @@ import com.ying.cloud.lycoin.net.Message;
 import com.ying.cloud.lycoin.net.PeerNode;
 import com.ying.cloud.lycoin.net.Source;
 import io.netty.bootstrap.Bootstrap;
+import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.channel.ChannelInitializer;
@@ -17,6 +18,7 @@ import io.netty.util.concurrent.GlobalEventExecutor;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 public class NettyClientNode extends PeerNode<ChannelSource> {
     private ChannelGroup channelGroup;
@@ -47,18 +49,27 @@ public class NettyClientNode extends PeerNode<ChannelSource> {
                         NioSocketChannel nioSocketChannel =(NioSocketChannel)ctx.channel();
                         String host=nioSocketChannel.remoteAddress().getAddress().getHostAddress();
                         int port = nioSocketChannel.remoteAddress().getPort();
-                        ChannelSource source =new ChannelSource(host,port,ctx.channel());
-                        sources.add(source);System.out.println(source);
-
+                        ChannelSource source =  getSource(host+":"+port);
+                        source.setSender(ctx.channel());
                         channelGroup.add(ctx.channel());
                     }
 
                     @Override
                     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
-                        sources.removeIf((source)->{
-                            return source.getChannel().equals(ctx.channel());
-                        });
+                        NioSocketChannel nioSocketChannel =(NioSocketChannel)ctx.channel();
+                        String host=nioSocketChannel.remoteAddress().getAddress().getHostAddress();
+                        int port = nioSocketChannel.remoteAddress().getPort();
+                        ChannelSource source = getSource(host+":"+port);
+                        source.setSender(null);
                         channelGroup.remove(ctx.channel());
+                        System.out.println("连接中断,2s后重连。");
+
+                        ctx.channel().eventLoop().schedule(new Runnable() {
+                            @Override
+                            public void run() {
+                               connect(host,port);
+                            }
+                        }, 2, TimeUnit.SECONDS);
                     }
 
                     @Override
@@ -71,21 +82,34 @@ public class NettyClientNode extends PeerNode<ChannelSource> {
                             System.out.println(error.getMessage());
                         }
                     }
+
+                    @Override
+                    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
+                        //super.exceptionCaught(ctx, cause);
+                        System.out.println(cause.getMessage());
+                    }
                 });
             }
         });
+
+
+        for (int i = 0; i <sources.size() ; i++) {
+            connect(sources.get(i).host,sources.get(i).port);
+        }
     }
 
     @Override
     public void send(ChannelSource source, Message message) {
-        ChannelSource source1 =sources.findById(source);
-        if(source1!=null){
-            source1.getChannel().writeAndFlush(message);
+        if(source!=null){
+            Channel channel = source.getSender();
+            if(channel!=null && channel.isActive()){
+                channel.writeAndFlush(message);
+            }
         }
     }
 
 
-    public void connect(String host,int port){
+    private void connect(String host,int port){
         ConnectionListener listener = new ConnectionListener(bootstrap,host,port);
         bootstrap.connect(host,port).addListener(listener);
     }

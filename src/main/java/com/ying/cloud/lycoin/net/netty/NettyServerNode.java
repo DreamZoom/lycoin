@@ -4,6 +4,7 @@ import com.ying.cloud.lycoin.net.Message;
 import com.ying.cloud.lycoin.net.PeerNode;
 import com.ying.cloud.lycoin.net.Source;
 import io.netty.bootstrap.ServerBootstrap;
+import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.channel.ChannelInitializer;
@@ -55,18 +56,20 @@ public class NettyServerNode extends PeerNode<ChannelSource> {
                                 NioSocketChannel nioSocketChannel =(NioSocketChannel)ctx.channel();
                                 String host=nioSocketChannel.remoteAddress().getAddress().getHostAddress();
                                 int port = nioSocketChannel.localAddress().getPort();
-                                ChannelSource source =new ChannelSource(host,port,ctx.channel());
-                                System.out.println(source);
-                                addSource(source);
+                                ChannelSource source =  getSource(host+":"+port);
+                                source.setReceiver(ctx.channel());
                                 channelGroup.add(ctx.channel());
                             }
 
                             @Override
                             public void channelInactive(ChannelHandlerContext ctx) throws Exception {
-                                sources.removeIf((source)->{
-                                    return source.getChannel().equals(ctx.channel());
-                                });
+                                NioSocketChannel nioSocketChannel =(NioSocketChannel)ctx.channel();
+                                String host=nioSocketChannel.remoteAddress().getAddress().getHostAddress();
+                                int port = nioSocketChannel.localAddress().getPort();
+                                ChannelSource source = getSource(host+":"+port);
+                                source.setReceiver(null);
                                 channelGroup.remove(ctx.channel());
+                                ctx.close();
                             }
 
                             @Override
@@ -77,6 +80,12 @@ public class NettyServerNode extends PeerNode<ChannelSource> {
                                 catch (Exception error){
                                     System.out.println(error.getMessage());
                                 }
+                            }
+
+                            @Override
+                            public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
+                                //super.exceptionCaught(ctx, cause);
+                                System.out.println(cause.getMessage());
                             }
                         });
                     }
@@ -94,9 +103,11 @@ public class NettyServerNode extends PeerNode<ChannelSource> {
 
     @Override
     public void send(ChannelSource source, Message message) {
-        ChannelSource source1 =sources.findById(source);
-        if(source1!=null){
-            source1.getChannel().writeAndFlush(message);
+        if(source!=null){
+            Channel channel = source.getReceiver();
+            if(channel!=null && channel.isActive()){
+                channel.writeAndFlush(message);
+            }
         }
     }
 }
