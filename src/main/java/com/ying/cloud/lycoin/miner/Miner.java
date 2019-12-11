@@ -5,6 +5,7 @@ import com.ying.cloud.lycoin.merkle.MerkleNode;
 import com.ying.cloud.lycoin.merkle.MerkleUtils;
 import com.ying.cloud.lycoin.models.Block;
 import com.ying.cloud.lycoin.models.BlockChain;
+import com.ying.cloud.lycoin.transaction.AuthorizationInfo;
 import com.ying.cloud.lycoin.transaction.Transaction;
 import com.ying.cloud.lycoin.transaction.TransactionStore;
 
@@ -52,8 +53,12 @@ public abstract class Miner extends Emiter implements IMiner {
     }
 
     @Override
-    public boolean accept(Block block) {
+    public synchronized boolean accept(Block block) {
         if(chain.accept(block)){
+            block.getBody().iterator((iMerkleNode -> {
+                AuthorizationInfo info = (AuthorizationInfo)(iMerkleNode);
+                transactions.removeTransaction(info.getId());
+            }));
             adapter.onFindBlock(block);
             return true;
         }

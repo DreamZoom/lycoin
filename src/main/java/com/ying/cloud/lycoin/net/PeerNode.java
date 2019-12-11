@@ -3,6 +3,7 @@ package com.ying.cloud.lycoin.net;
 
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 
 public abstract class PeerNode<TSource extends Source> implements IPeerNode<TSource> {
 
@@ -38,8 +39,12 @@ public abstract class PeerNode<TSource extends Source> implements IPeerNode<TSou
     @Override
     public void addSource(TSource source) {
         System.out.println("add source = "+source);
+        Source source1 = getSource(source.id());
+        if(source1!=null) return;
         sources.add(source);
     }
+
+
 
     @Override
     public void removeSource(TSource source) {
@@ -59,6 +64,11 @@ public abstract class PeerNode<TSource extends Source> implements IPeerNode<TSou
             }
         }
         return null;
+    }
+
+    @Override
+    public List<TSource> getSources() {
+        return sources;
     }
 
 

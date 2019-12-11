@@ -71,9 +71,8 @@ public class BraftMiner extends Miner implements IMessageHandler {
                             block.setHash(hash);
 
                             if(accept(block)){
-                                context.getMy().setState(NodeState.FOLLOWER);
-                                transactions.clearTransaction();
-                                adapter.onFindBlock(block);
+                                //context.getMy().setState(NodeState.FOLLOWER);
+                                context.stateChangeTo(NodeState.FOLLOWER);
                             }
                         }
                     }

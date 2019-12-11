@@ -93,10 +93,4 @@ public class TransactionCoin extends MerkleDataNode implements Transaction {
         return SHA256.encode(sb.toString());
     }
 
-    @Override
-    public <T> List<T> map(Function<Transaction, T> callback) {
-        List<T> list =new ArrayList<>();
-        list.add(callback.apply(this));
-        return list;
-    }
 }

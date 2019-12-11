@@ -11,7 +11,9 @@ import com.ying.cloud.lycoin.miner.BraftMiner;
 import com.ying.cloud.lycoin.miner.IMinerEventAdapter;
 import com.ying.cloud.lycoin.models.Block;
 import com.ying.cloud.lycoin.net.IMessageHandler;
+import com.ying.cloud.lycoin.net.ISourceAdapter;
 import com.ying.cloud.lycoin.net.Message;
+import com.ying.cloud.lycoin.net.Source;
 import com.ying.cloud.lycoin.net.messages.MsgBlock;
 import com.ying.cloud.lycoin.net.messages.MsgBraft;
 import com.ying.cloud.lycoin.net.messages.MsgRequestBlock;
@@ -64,7 +66,7 @@ public class MainApplication {
 //        peers3.add(peer3);
 //        config3.setPeers(peers3);
 
-        NettyServerNode serverNode =new NettyServerNode(config.getServerPort());
+        NettyServerNode serverNode =new NettyServerNode(config.getIp(),config.getServerPort());
 
 
 
@@ -86,7 +88,7 @@ public class MainApplication {
             BraftNettyNode nettyNode = new BraftNettyNode(config.getPeers().get(i).getIp(),config.getPeers().get(i).getServerPort());
             nodes.add(nettyNode);
             clientNode.addSource(nettyNode);
-            serverNode.addSource(nettyNode);
+            //serverNode.addSource(nettyNode);
             //clientNode.connect(config.getPeers().get(i).getIp(),config.getPeers().get(i).getServerPort());
         }
 
@@ -159,6 +161,22 @@ public class MainApplication {
             }
         };
 
+        serverNode.setSourceAdapter(new ISourceAdapter<ChannelSource>() {
+            @Override
+            public void onAdded(ChannelSource source) {
+                BraftNettyNode nettyNode = new BraftNettyNode(source.host,source.port);
+                System.out.println(source.host+":"+source.port);
+                serverNode.addSource(nettyNode);
+                clientNode.connectSource(nettyNode);
+            }
+
+            @Override
+            public void onRemoved(ChannelSource source) {
+                ChannelSource s = serverNode.getSource(source.id());
+                serverNode.removeSource(s);
+                clientNode.removeSource(s);
+            }
+        });
         serverNode.setHandler(handler);
         //clientNode.setHandler(handler);
         try{
@@ -169,6 +187,8 @@ public class MainApplication {
             miner.run();
 
             HttpApiServer apiServer =new HttpApiServer(miner);
+            apiServer.setMy(my);
+            apiServer.setClientNode(clientNode);
 
             apiServer.run();
 

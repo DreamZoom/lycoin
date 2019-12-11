@@ -26,14 +26,15 @@ public class ConnectionListener implements ChannelFutureListener {
             loop.schedule(new Runnable() {
                 @Override
                 public void run() {
-                    System.err.println("服务端链接失败，开始重连操作...");
+                    System.out.println("服务端链接失败，开始重连操作...");
+                    System.out.println("ip:"+ip+"---"+"port:"+port);
                     //NioSocketChannel address = ((NioSocketChannel)future.channel());
                     bootstrap.connect(ip,port).addListener(listener);
                 }
             }, 1L, TimeUnit.SECONDS);
         } else {
-            System.err.println("服务端链接成功...");
-            System.err.println("ip:"+ip+"---"+"port:"+port);
+            System.out.println("服务端链接成功...");
+            System.out.println("ip:"+ip+"---"+"port:"+port);
         }
     }
 }

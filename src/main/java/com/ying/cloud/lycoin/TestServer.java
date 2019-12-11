@@ -39,7 +39,7 @@ public class TestServer {
         try{
 
 
-            NettyServerNode serverNode =new NettyServerNode(config.getServerPort());
+            NettyServerNode serverNode =new NettyServerNode(config.getIp(),config.getServerPort());
             serverNode.setup();
 
 

@@ -4,6 +4,7 @@ import com.ying.cloud.lycoin.crypto.SHA256;
 import com.ying.cloud.lycoin.transaction.Transaction;
 
 import java.util.List;
+import java.util.function.Consumer;
 import java.util.function.Function;
 
 public class MerkleHashNode extends MerkleNode {
@@ -18,14 +19,13 @@ public class MerkleHashNode extends MerkleNode {
     }
 
     @Override
-    public <T> List<T> map(Function<Transaction, T> callback) {
-        List<T> l1= left.map(callback);
+    public void iterator(Consumer<IMerkleNode> consumer) {
+        consumer.accept(left);
         if(this.right!=null){
-            List<T> l2= right.map(callback);
-            l1.addAll(l2);
+            consumer.accept(right);
         }
-        return l1;
     }
+
 
     private MerkleNode left;
 
