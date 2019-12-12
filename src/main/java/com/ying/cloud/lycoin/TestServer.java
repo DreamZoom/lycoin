@@ -134,6 +134,11 @@ public class TestServer {
                 }
 
                 @Override
+                public void onRequestLastBlock() {
+
+                }
+
+                @Override
                 public void onAcceptTransaction(Transaction transaction) {
 
                 }

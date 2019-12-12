@@ -14,10 +14,7 @@ import com.ying.cloud.lycoin.net.IMessageHandler;
 import com.ying.cloud.lycoin.net.ISourceAdapter;
 import com.ying.cloud.lycoin.net.Message;
 import com.ying.cloud.lycoin.net.Source;
-import com.ying.cloud.lycoin.net.messages.MsgBlock;
-import com.ying.cloud.lycoin.net.messages.MsgBraft;
-import com.ying.cloud.lycoin.net.messages.MsgRequestBlock;
-import com.ying.cloud.lycoin.net.messages.MsgTransaction;
+import com.ying.cloud.lycoin.net.messages.*;
 import com.ying.cloud.lycoin.net.netty.ChannelSource;
 import com.ying.cloud.lycoin.net.netty.NettyClientNode;
 import com.ying.cloud.lycoin.net.netty.NettyServerNode;
@@ -25,55 +22,15 @@ import com.ying.cloud.lycoin.transaction.Transaction;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 
 public class MainApplication {
     public static void main(String[] args){
-//          LycoinApplication application =new LycoinApplication();
-//          application.setup();
 
         BlockConfig config = BlockConfig.load();
-
-//        BlockConfig config1 =new BlockConfig();
-//        config1.setServerPort(8887);
-//        List<Peer> peers1=new ArrayList<>();
-//        Peer peer =new Peer();
-//        peer.setServerPort(8888);
-//        peers1.add(peer);
-//        peer =new Peer();
-//        peer.setServerPort(8889);
-//        peers1.add(peer);
-//        config1.setPeers(peers1);
-//
-//        BlockConfig config2 =new BlockConfig();
-//        config2.setServerPort(8888);
-//        List<Peer> peers2=new ArrayList<>();
-//        Peer peer2 =new Peer();
-//        peer2.setServerPort(8887);
-//        peers2.add(peer2);
-//        peer2 =new Peer();
-//        peer2.setServerPort(8889);
-//        peers2.add(peer2);
-//        config2.setPeers(peers2);
-//
-//        BlockConfig config3 =new BlockConfig();
-//        config3.setServerPort(8889);
-//        List<Peer> peers3=new ArrayList<>();
-//        Peer peer3 =new Peer();
-//        peer3.setServerPort(8888);
-//        peers3.add(peer3);
-//        peer3 =new Peer();
-//        peer3.setServerPort(8887);
-//        peers3.add(peer3);
-//        config3.setPeers(peers3);
-
         NettyServerNode serverNode =new NettyServerNode(config.getIp(),config.getServerPort());
-
-
-
         NettyClientNode clientNode =new NettyClientNode();
-
-
-
 
         ConfigHolder holder =new ConfigHolder();
         holder.setTimeout(10000);
@@ -88,8 +45,7 @@ public class MainApplication {
             BraftNettyNode nettyNode = new BraftNettyNode(config.getPeers().get(i).getIp(),config.getPeers().get(i).getServerPort());
             nodes.add(nettyNode);
             clientNode.addSource(nettyNode);
-            //serverNode.addSource(nettyNode);
-            //clientNode.connect(config.getPeers().get(i).getIp(),config.getPeers().get(i).getServerPort());
+            serverNode.addSource(nettyNode);
         }
 
         holder.setNodes(nodes);
@@ -100,8 +56,6 @@ public class MainApplication {
             public int sendMessageToAll(Object o) throws SendMessageException {
 
                 System.out.println( "send--"+o.toString());
-
-
                 clientNode.broadcast(new MsgBraft(o));
                 return 0;
             }
@@ -130,6 +84,12 @@ public class MainApplication {
             }
 
             @Override
+            public void onRequestLastBlock() {
+                System.out.println("i request last block");
+                clientNode.broadcast(new MsgRequestLastBlock());
+            }
+
+            @Override
             public void onAcceptTransaction(Transaction transaction) {
                 System.out.println("i accept a transaction id equals "+transaction.getId() +" , broadcast it ");
                 clientNode.broadcast(new MsgTransaction(transaction));
@@ -151,7 +111,7 @@ public class MainApplication {
                     miner.handle(source,message);
                     if(message instanceof MsgRequestBlock){
                         System.out.println("request a block ,id equals "+((MsgRequestBlock) message).getHash());
-                        clientNode.send((ChannelSource) source,message);
+                       // clientNode.send((ChannelSource) source,message);
                     }
                     else{
                         clientNode.broadcast(message);
@@ -165,7 +125,9 @@ public class MainApplication {
             @Override
             public void onAdded(ChannelSource source) {
                 BraftNettyNode nettyNode = new BraftNettyNode(source.host,source.port);
+                nettyNode.setReceiver(source.getReceiver());
                 System.out.println(source.host+":"+source.port);
+                braftContext.addNode(nettyNode);
                 serverNode.addSource(nettyNode);
                 clientNode.connectSource(nettyNode);
             }
@@ -179,7 +141,11 @@ public class MainApplication {
         });
         serverNode.setHandler(handler);
         //clientNode.setHandler(handler);
+
+
+
         try{
+
             braftContext.init(holder,net);
 
             serverNode.setup();

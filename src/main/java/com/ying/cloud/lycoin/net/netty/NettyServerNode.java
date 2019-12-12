@@ -70,9 +70,16 @@ public class NettyServerNode extends PeerNode<ChannelSource> {
                                 NioSocketChannel nioSocketChannel =(NioSocketChannel)ctx.channel();
                                 String host=nioSocketChannel.remoteAddress().getAddress().getHostAddress();
                                 int port = nioSocketChannel.localAddress().getPort();
-                                ChannelSource source =  new ChannelSource(host,port);
-                                source.setReceiver(ctx.channel());
-                                sourceAdapter.onAdded(source);
+
+                                ChannelSource source =  getSource(host+":"+port);
+                                if(source!=null){
+                                    source.setReceiver(ctx.channel());
+                                }
+                                else {
+                                    source =  new ChannelSource(host,port);
+                                    source.setReceiver(ctx.channel());
+                                    sourceAdapter.onAdded(source);
+                                }
                                 channelGroup.add(ctx.channel());
                             }
 
@@ -81,8 +88,16 @@ public class NettyServerNode extends PeerNode<ChannelSource> {
                                 NioSocketChannel nioSocketChannel =(NioSocketChannel)ctx.channel();
                                 String host=nioSocketChannel.remoteAddress().getAddress().getHostAddress();
                                 int port = nioSocketChannel.localAddress().getPort();
-                                ChannelSource source =  new ChannelSource(host,port);
-                                sourceAdapter.onRemoved(source);
+
+                                ChannelSource source = getSource(host+":"+port);
+                                if(source!=null){
+                                    source.setSender(null);
+                                }
+                                else{
+                                    source =  new ChannelSource(host,port);
+                                    sourceAdapter.onRemoved(source);
+                                }
+
                                 channelGroup.remove(ctx.channel());
                                 ctx.close();
                             }

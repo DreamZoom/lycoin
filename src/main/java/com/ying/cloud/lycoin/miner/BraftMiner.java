@@ -10,6 +10,7 @@ import com.ying.cloud.lycoin.net.IMessageHandler;
 
 import com.ying.cloud.lycoin.net.messages.MsgBlock;
 import com.ying.cloud.lycoin.net.messages.MsgRequestBlock;
+import com.ying.cloud.lycoin.net.messages.MsgRequestLastBlock;
 import com.ying.cloud.lycoin.net.messages.MsgTransaction;
 import com.ying.cloud.lycoin.utils.SystemUtils;
 
@@ -29,10 +30,27 @@ public class BraftMiner extends Miner implements IMessageHandler {
                 while (true){
                     try{
                         String hash = chain.getLoseBlock();
-                        if(hash!=null){
+                        if(hash!=null && !hash.equals("")){
                             adapter.onLoseBlock(hash);
                         }
                         Thread.sleep(2000);
+                    }catch (Exception err){
+                        System.out.println(err.getMessage());
+                    }
+                }
+            }
+        }).start();
+
+
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                while (true){
+                    try{
+                        if(context.getLeader()!=null && context.getMy().getState().equals(NodeState.LEADER)) {
+                            adapter.onRequestLastBlock();
+                        }
+                        Thread.sleep(10000);
                     }catch (Exception err){
                         System.out.println(err.getMessage());
                     }
@@ -104,6 +122,10 @@ public class BraftMiner extends Miner implements IMessageHandler {
     public void handle(Object source, Message message) {
         if(message instanceof MsgRequestBlock){
             Block block =  chain.findBlock(((MsgRequestBlock) message).getHash());
+            adapter.onFindBlock(block);
+        }
+        if(message instanceof MsgRequestLastBlock){
+            Block block =  chain.getBestLastBlock();
             adapter.onFindBlock(block);
         }
 
