@@ -31,8 +31,9 @@ public class TransactionStore {
     }
 
     public synchronized boolean removeTransaction(String id){
-        return transactions.removeIf((t)->{
-            return t.getId().equals(id);
+        return transactions.removeIf((transaction)->{
+            return transaction.getId().equals(id);
+
         });
     }
 

@@ -26,6 +26,7 @@ public class MerkleHashNode extends MerkleNode {
         }
     }
 
+
     private MerkleNode left;
 
     public MerkleNode getLeft() {

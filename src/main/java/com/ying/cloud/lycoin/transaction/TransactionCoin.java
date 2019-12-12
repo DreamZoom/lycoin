@@ -92,6 +92,4 @@ public class TransactionCoin extends MerkleDataNode implements Transaction {
         }
         return SHA256.encode(sb.toString());
     }
-
-
 }

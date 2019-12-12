@@ -111,4 +111,13 @@ public class NettyClientNode extends PeerNode<ChannelSource> {
         ConnectionListener listener = new ConnectionListener(bootstrap,host,port);
         bootstrap.connect(host,port).addListener(listener);
     }
+
+    public void connectSource(ChannelSource source) {
+        ChannelSource find = getSource(source.id());
+        if(find==null){
+            addSource(source);
+            connect(source.host,source.port);
+        }
+
+    }
 }

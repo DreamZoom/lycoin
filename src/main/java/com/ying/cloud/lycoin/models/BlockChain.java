@@ -346,6 +346,8 @@ public class BlockChain {
         return null;
     }
 
+
+
     public synchronized boolean  checkBranch(Branch branch){
         if(branch.getHead().equals(root.getHash())){
             return  true;

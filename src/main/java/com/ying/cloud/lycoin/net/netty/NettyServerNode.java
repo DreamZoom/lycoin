@@ -1,5 +1,6 @@
 package com.ying.cloud.lycoin.net.netty;
 
+import com.ying.cloud.lycoin.net.ISourceAdapter;
 import com.ying.cloud.lycoin.net.Message;
 import com.ying.cloud.lycoin.net.PeerNode;
 import com.ying.cloud.lycoin.net.Source;
@@ -20,16 +21,29 @@ import io.netty.util.concurrent.GlobalEventExecutor;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 public class NettyServerNode extends PeerNode<ChannelSource> {
 
     private ChannelGroup channelGroup;
-    public NettyServerNode(int port) {
+    public NettyServerNode(String host,int port) {
+        this.host = host;
         this.port = port;
         this.channelGroup = new DefaultChannelGroup(GlobalEventExecutor.INSTANCE);
     }
 
+    public ISourceAdapter getSourceAdapter() {
+        return sourceAdapter;
+    }
+
+    public void setSourceAdapter(ISourceAdapter sourceAdapter) {
+        this.sourceAdapter = sourceAdapter;
+    }
+
+    protected ISourceAdapter sourceAdapter;
+
     private int port;
+    private String host;
     @Override
     public void setup() {
         ServerBootstrap serverBootstrap = new ServerBootstrap();
@@ -54,8 +68,16 @@ public class NettyServerNode extends PeerNode<ChannelSource> {
                                 NioSocketChannel nioSocketChannel =(NioSocketChannel)ctx.channel();
                                 String host=nioSocketChannel.remoteAddress().getAddress().getHostAddress();
                                 int port = nioSocketChannel.localAddress().getPort();
+
                                 ChannelSource source =  getSource(host+":"+port);
-                                source.setReceiver(ctx.channel());
+                                if(source!=null){
+                                    source.setReceiver(ctx.channel());
+                                }
+                                else {
+                                    source =  new ChannelSource(host,port);
+                                    source.setReceiver(ctx.channel());
+                                    sourceAdapter.onAdded(source);
+                                }
                                 channelGroup.add(ctx.channel());
                             }
 
@@ -64,8 +86,16 @@ public class NettyServerNode extends PeerNode<ChannelSource> {
                                 NioSocketChannel nioSocketChannel =(NioSocketChannel)ctx.channel();
                                 String host=nioSocketChannel.remoteAddress().getAddress().getHostAddress();
                                 int port = nioSocketChannel.localAddress().getPort();
+
                                 ChannelSource source = getSource(host+":"+port);
-                                source.setReceiver(null);
+                                if(source!=null){
+                                    source.setSender(null);
+                                }
+                                else{
+                                    source =  new ChannelSource(host,port);
+                                    sourceAdapter.onRemoved(source);
+                                }
+
                                 channelGroup.remove(ctx.channel());
                                 ctx.close();
                             }
@@ -73,7 +103,13 @@ public class NettyServerNode extends PeerNode<ChannelSource> {
                             @Override
                             public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
                                 try{
-                                    handler.handle(ctx.channel(),(Message)msg);
+                                    ctx.channel().eventLoop().schedule(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            handler.handle(ctx.channel(),(Message)msg);
+                                        }
+                                    },0,TimeUnit.SECONDS);
+
                                 }
                                 catch (Exception error){
                                     System.out.println(error.getMessage());

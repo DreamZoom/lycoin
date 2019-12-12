@@ -39,7 +39,7 @@ public class TestServer {
         try{
 
 
-            NettyServerNode serverNode =new NettyServerNode(config.getServerPort());
+            NettyServerNode serverNode =new NettyServerNode(config.getIp(),config.getServerPort());
             serverNode.setup();
 
 
@@ -131,6 +131,11 @@ public class TestServer {
                 @Override
                 public void onLoseBlock(String hash) {
                     clientNode.broadcast(new MsgRequestBlock(hash));
+                }
+
+                @Override
+                public void onRequestLastBlock() {
+
                 }
 
                 @Override

@@ -2,6 +2,8 @@ package com.ying.cloud.lycoin;
 
 import com.google.gson.Gson;
 import com.ying.cloud.lycoin.miner.Miner;
+import com.ying.cloud.lycoin.net.Source;
+import com.ying.cloud.lycoin.net.netty.NettyClientNode;
 import com.ying.cloud.lycoin.transaction.AuthorizationInfo;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Request;
@@ -13,10 +15,32 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.List;
 
 public class HttpApiServer {
 
     Miner miner;
+
+    public NettyClientNode getClientNode() {
+        return clientNode;
+    }
+
+    public void setClientNode(NettyClientNode clientNode) {
+        this.clientNode = clientNode;
+    }
+
+    private NettyClientNode clientNode;
+
+    public BraftNettyNode getMy() {
+        return my;
+    }
+
+    public void setMy(BraftNettyNode my) {
+        this.my = my;
+    }
+
+    private BraftNettyNode my;
     public HttpApiServer(Miner miner){
         this.miner = miner;
     }
@@ -28,6 +52,7 @@ public class HttpApiServer {
     public void run(int port){
         Server server = new Server(port);
         server.setAttribute("org.eclipse.jetty.server.Request.maxFormContentSize",-1);
+        server.setAttribute("org.eclipse.jetty.LEVEL","INFO");
 
         Handler handler =new AbstractHandler() {
             @Override
@@ -52,6 +77,16 @@ public class HttpApiServer {
                 if("blocks".equals(action)){
                     Gson gson=new Gson();
                     response.getWriter().write(gson.toJson(miner.getChain().getBlocks()));
+                }
+
+                if("nodes".equals(action)){
+                    Gson gson=new Gson();
+                    List<Source> sources =new ArrayList<>();
+                    sources.add(my);
+                    clientNode.getSources().forEach((s)->{
+                        sources.add(new BraftNettyNode(s.host,s.port));
+                    });
+                    response.getWriter().write(gson.toJson(sources));
                 }
 
                 baseRequest.setHandled(true);
