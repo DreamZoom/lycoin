@@ -12,7 +12,7 @@ import com.ying.cloud.lycoin.utils.SystemUtils;
 import java.util.ArrayList;
 import java.util.List;
 
-public class CoinMiner extends Miner implements IMessageHandler {
+public class CoinMiner extends Miner {
 
     public Account getAccount() {
         return account;
@@ -101,8 +101,5 @@ public class CoinMiner extends Miner implements IMessageHandler {
         return node;
     }
 
-    @Override
-    public void handle(Object source, Message message) {
-        //System.out.println(message.getType());
-    }
+
 }

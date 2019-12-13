@@ -23,7 +23,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-public class NettyServerNode extends PeerNode<ChannelSource> {
+public class NettyServerNode<TSource extends ChannelSource> extends PeerNode<TSource> {
 
     private ChannelGroup channelGroup;
     public NettyServerNode(String host,int port) {
@@ -108,7 +108,11 @@ public class NettyServerNode extends PeerNode<ChannelSource> {
                                     ctx.channel().eventLoop().schedule(new Runnable() {
                                         @Override
                                         public void run() {
-                                            handler.handle(ctx.channel(),(Message)msg);
+                                            NioSocketChannel nioSocketChannel =(NioSocketChannel)ctx.channel();
+                                            String host=nioSocketChannel.remoteAddress().getAddress().getHostAddress();
+                                            int port = nioSocketChannel.localAddress().getPort();
+                                            TSource source = getSource(host+":"+port);
+                                            handler.handle(source,(Message)msg);
                                         }
                                     },0,TimeUnit.SECONDS);
 
@@ -138,7 +142,7 @@ public class NettyServerNode extends PeerNode<ChannelSource> {
 
 
     @Override
-    public void send(ChannelSource source, Message message) {
+    public void send(TSource source, Message message) {
         if(source!=null){
             Channel channel = source.getReceiver();
             if(channel!=null && channel.isActive()){

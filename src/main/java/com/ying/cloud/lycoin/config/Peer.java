@@ -1,6 +1,17 @@
 package com.ying.cloud.lycoin.config;
 
-public class Peer {
+import java.io.Serializable;
+
+public class Peer implements Serializable {
+    public Peer(){
+
+    }
+
+    public Peer(String ip, int serverPort) {
+        this.ip = ip;
+        this.serverPort = serverPort;
+    }
+
     private String ip;
 
     public String getIp() {

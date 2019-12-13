@@ -10,10 +10,7 @@ import com.ying.cloud.lycoin.config.Peer;
 import com.ying.cloud.lycoin.miner.BraftMiner;
 import com.ying.cloud.lycoin.miner.IMinerEventAdapter;
 import com.ying.cloud.lycoin.models.Block;
-import com.ying.cloud.lycoin.net.IMessageHandler;
-import com.ying.cloud.lycoin.net.ISourceAdapter;
-import com.ying.cloud.lycoin.net.Message;
-import com.ying.cloud.lycoin.net.Source;
+import com.ying.cloud.lycoin.net.*;
 import com.ying.cloud.lycoin.net.messages.*;
 import com.ying.cloud.lycoin.net.netty.ChannelSource;
 import com.ying.cloud.lycoin.net.netty.NettyClientNode;
@@ -22,19 +19,17 @@ import com.ying.cloud.lycoin.transaction.Transaction;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Timer;
-import java.util.TimerTask;
 
 public class MainApplication {
     public static void main(String[] args){
 
         BlockConfig config = BlockConfig.load();
-        NettyServerNode serverNode =new NettyServerNode(config.getIp(),config.getServerPort());
-        NettyClientNode clientNode =new NettyClientNode();
+        NettyServerNode<BraftNettyNode> serverNode =new NettyServerNode<>(config.getIp(),config.getServerPort());
+        NettyClientNode<BraftNettyNode> clientNode =new NettyClientNode<>();
 
         ConfigHolder holder =new ConfigHolder();
-        holder.setTimeout(10000);
-        holder.setRandomTimeoutLimit(5000);
+        holder.setTimeout(5000);
+        holder.setRandomTimeoutLimit(3000);
 
         BraftNettyNode my =new BraftNettyNode(config.getIp(),config.getServerPort());
         holder.setMy(my);
@@ -95,35 +90,11 @@ public class MainApplication {
                 clientNode.broadcast(new MsgTransaction(transaction));
             }
         });
-        IMessageHandler handler =new IMessageHandler() {
-            @Override
-            public void handle(Object source, Message message) {
-                if(message instanceof MsgBraft){
-                    try{
-                        System.out.println(((MsgBraft) message).getBraft());
-                        net.handleMessage(((MsgBraft) message).getBraft());
-                    }
-                    catch (Exception error){
-                        System.out.println(error.getMessage());
-                    }
-                }
-                else {
-                    miner.handle(source,message);
-                    if(message instanceof MsgRequestBlock){
-                        System.out.println("request a block ,id equals "+((MsgRequestBlock) message).getHash());
-                       // clientNode.send((ChannelSource) source,message);
-                    }
-                    else{
-                        clientNode.broadcast(message);
-                    }
-
-                }
-            }
-        };
 
         serverNode.setSourceAdapter(new ISourceAdapter<ChannelSource>() {
             @Override
             public void onAdded(ChannelSource source) {
+
                 BraftNettyNode nettyNode = new BraftNettyNode(source.host,source.port);
                 nettyNode.setReceiver(source.getReceiver());
                 System.out.println(source.host+":"+source.port);
@@ -134,13 +105,72 @@ public class MainApplication {
 
             @Override
             public void onRemoved(ChannelSource source) {
-                ChannelSource s = serverNode.getSource(source.id());
+
+                BraftNettyNode s = serverNode.getSource(source.id());
+
                 serverNode.removeSource(s);
                 clientNode.removeSource(s);
             }
         });
-        serverNode.setHandler(handler);
-        //clientNode.setHandler(handler);
+        serverNode.setHandler(new IMessageHandler<BraftNettyNode>() {
+            @Override
+            public void handle(BraftNettyNode source, Message message) {
+                if(message instanceof MsgBraft){
+                    try{
+                        System.out.println(((MsgBraft) message).getBraft());
+                        net.handleMessage(((MsgBraft) message).getBraft());
+                    }
+                    catch (Exception error){
+                        System.out.println(error.getMessage());
+                    }
+                }
+                else if(message instanceof MsgRequestPeers){
+                    System.out.println("response peers");
+                    List<Peer> list =new ArrayList<>();
+                    clientNode.getSources().forEach((s)->{
+                        list.add(new Peer(s.host,s.port));
+                    });
+                    Message msg =new MsgPeers(list);
+
+                    clientNode.send(source,msg);
+                }
+                else if(message instanceof MsgPeers){
+                    List<Peer> peers = ((MsgPeers) message).getPeers();
+                    for (int i = 0; i <peers.size() ; i++) {
+                        Peer peer =peers.get(i);
+                        if(peer.getIp().equals(config.getIp())){
+                            continue;
+                        }
+                        clientNode.connectSource(new BraftNettyNode(peer.getIp(),peer.getServerPort()));
+                    }
+                }
+                else {
+                    miner.handle(source,message);
+                    if(message instanceof MsgRequestBlock){
+                        System.out.println("request a block ,id equals "+((MsgRequestBlock) message).getHash());
+                        // clientNode.send((ChannelSource) source,message);
+                    }
+                    else{
+                        clientNode.broadcast(message);
+                    }
+
+                }
+            }
+        });
+        clientNode.setConnectAdapter(new IConnectAdapter<BraftNettyNode>() {
+            @Override
+            public void onActive(BraftNettyNode source) {
+                if(source!=null){
+                    System.out.println("request peers");
+                    clientNode.send(source,new MsgRequestPeers());
+                }
+            }
+
+            @Override
+            public void onInactive(BraftNettyNode source) {
+
+            }
+        });
 
 
 

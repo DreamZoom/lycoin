@@ -14,6 +14,7 @@ import com.ying.cloud.lycoin.net.IMessageHandler;
 import com.ying.cloud.lycoin.net.messages.MsgBlock;
 import com.ying.cloud.lycoin.net.messages.MsgBraft;
 import com.ying.cloud.lycoin.net.messages.MsgRequestBlock;
+import com.ying.cloud.lycoin.net.netty.ChannelSource;
 import com.ying.cloud.lycoin.net.netty.NettyClientNode;
 import com.ying.cloud.lycoin.net.netty.NettyServerNode;
 import com.ying.cloud.lycoin.transaction.Transaction;
@@ -95,9 +96,9 @@ public class TestServer {
 
             });
 
-            IMessageHandler handler =new IMessageHandler() {
+            IMessageHandler<ChannelSource> handler =new IMessageHandler<ChannelSource>() {
                 @Override
-                public void handle(Object source, Message message) {
+                public void handle(ChannelSource source, Message message) {
                     if(message instanceof MsgBraft){
                         try{
                             if(showMessage){

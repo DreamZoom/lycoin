@@ -14,7 +14,7 @@ import com.ying.cloud.lycoin.net.messages.MsgRequestLastBlock;
 import com.ying.cloud.lycoin.net.messages.MsgTransaction;
 import com.ying.cloud.lycoin.utils.SystemUtils;
 
-public class BraftMiner extends Miner implements IMessageHandler {
+public class BraftMiner extends Miner{
 
     BraftContext context;
     public BraftMiner(BraftContext context){
@@ -117,8 +117,6 @@ public class BraftMiner extends Miner implements IMessageHandler {
 
 
 
-
-    @Override
     public void handle(Object source, Message message) {
         if(message instanceof MsgRequestBlock){
             Block block =  chain.findBlock(((MsgRequestBlock) message).getHash());

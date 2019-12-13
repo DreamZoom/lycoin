@@ -4,6 +4,7 @@ import com.ying.cloud.lycoin.config.BlockConfig;
 import com.ying.cloud.lycoin.config.Peer;
 import com.ying.cloud.lycoin.net.Message;
 import com.ying.cloud.lycoin.net.*;
+import com.ying.cloud.lycoin.net.http.HttpSource;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelHandlerContext;
@@ -20,7 +21,7 @@ import io.netty.util.concurrent.GlobalEventExecutor;
 
 import java.util.List;
 
-public class NettyNetwork extends PeerNode {
+public class NettyNetwork extends PeerNode<ChannelSource> {
     private BlockConfig config;
     private ChannelGroup channelGroup ;
 
@@ -46,7 +47,7 @@ public class NettyNetwork extends PeerNode {
 
             @Override
             public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-                handler.handle(ctx.channel(),(Message)msg);
+                handler.handle(null,(Message)msg);
             }
         };
         ChannelInboundHandlerAdapter clientAdapter =new ChannelInboundHandlerAdapter(){
@@ -62,7 +63,7 @@ public class NettyNetwork extends PeerNode {
 
             @Override
             public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-                handler.handle(ctx.channel(),(Message)msg);
+                handler.handle(null,(Message)msg);
             }
         };
 
@@ -124,7 +125,7 @@ public class NettyNetwork extends PeerNode {
     }
 
     @Override
-    public void send(Source source, Message message) {
+    public void send(ChannelSource source, Message message) {
         ChannelSource channelSource = (ChannelSource)source;
         if(channelSource!=null){
             channelSource.getSender().writeAndFlush(message);

@@ -13,11 +13,11 @@ public abstract class PeerNode<TSource extends Source> implements IPeerNode<TSou
     public PeerNode(){
         sources=new SourceCollection<>();
     }
-    public void setHandler(IMessageHandler handler) {
+    public void setHandler(IMessageHandler<TSource> handler) {
         this.handler = handler;
     }
 
-    protected IMessageHandler handler;
+    protected IMessageHandler<TSource> handler;
 
 
 

@@ -84,7 +84,8 @@ public class HttpApiServer {
                     List<Source> sources =new ArrayList<>();
                     sources.add(my);
                     clientNode.getSources().forEach((s)->{
-                        sources.add(new BraftNettyNode(s.host,s.port));
+                        BraftNettyNode n = (BraftNettyNode)s;
+                        sources.add(new BraftNettyNode(n.host,n.port));
                     });
                     response.getWriter().write(gson.toJson(sources));
                 }
