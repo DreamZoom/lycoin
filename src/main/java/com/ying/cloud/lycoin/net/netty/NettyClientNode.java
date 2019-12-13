@@ -38,11 +38,9 @@ public class NettyClientNode<TSource extends ChannelSource> extends PeerNode<TSo
     public void setup() {
         bootstrap = new Bootstrap();
         NioEventLoopGroup group = new NioEventLoopGroup();
-        bootstrap.group(group)
-                .channel(NioSocketChannel.class).handler(new ChannelInitializer<NioSocketChannel>() {
+        bootstrap.group(group).channel(NioSocketChannel.class).handler(new ChannelInitializer<NioSocketChannel>() {
             @Override
             protected void initChannel(NioSocketChannel ch) {
-                System.out.println("accept a socket");
                 ch.config().setAllowHalfClosure(true);
 
                 ch.pipeline().addLast(new LengthFieldPrepender(4));

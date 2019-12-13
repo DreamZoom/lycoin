@@ -21,7 +21,7 @@ public class MerkleHashNode extends MerkleNode {
     @Override
     public void iterator(Consumer<IMerkleNode> consumer) {
         consumer.accept(left);
-        if(this.right!=null){
+        if(right!=null){
             consumer.accept(right);
         }
     }

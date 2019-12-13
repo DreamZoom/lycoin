@@ -12,6 +12,7 @@ import com.ying.cloud.lycoin.net.messages.MsgBlock;
 import com.ying.cloud.lycoin.net.messages.MsgRequestBlock;
 import com.ying.cloud.lycoin.net.messages.MsgRequestLastBlock;
 import com.ying.cloud.lycoin.net.messages.MsgTransaction;
+import com.ying.cloud.lycoin.transaction.AuthorizationInfo;
 import com.ying.cloud.lycoin.utils.SystemUtils;
 
 public class BraftMiner extends Miner{
@@ -65,13 +66,13 @@ public class BraftMiner extends Miner{
                 while (true){
 
                     try{
-                        if(condition()){
+                        if(condition()) {
                             System.out.println("i am a loader ,i begin find block");
 
                             String ip = SystemUtils.getLocalAddress();
                             Block last = chain.getBestLastBlock();
-                            Block block =new Block();
-                            block.setIndex(last.getIndex()+1);
+                            Block block = new Block();
+                            block.setIndex(last.getIndex() + 1);
                             block.setPreviousHash(last.getHash());
                             block.setData(chain.getRoot().getHash());
                             block.setIp(ip);
@@ -88,13 +89,18 @@ public class BraftMiner extends Miner{
                             String hash = BlockChain.calculateHash(block);
                             block.setHash(hash);
 
-                            if(accept(block)){
-                                //context.getMy().setState(NodeState.FOLLOWER);
-                                context.stateChangeTo(NodeState.FOLLOWER);
+
+                            synchronized (this) {
+
+                                if (accept(block)) {
+                                    //context.getMy().setState(NodeState.FOLLOWER);
+                                    context.stateChangeTo(NodeState.FOLLOWER);
+                                }
                             }
+
                         }
                     }
-                    catch (Exception err){
+                    catch(Exception err){
                         System.out.println(err.getMessage());
                     }
                     try {
@@ -128,9 +134,17 @@ public class BraftMiner extends Miner{
         }
 
         if(message instanceof MsgBlock){
-            if(accept(((MsgBlock) message).getBlock())) {
-                //adapter.onFindBlock(block);
+            synchronized (this){
+                if(accept(((MsgBlock) message).getBlock())) {
+                    //adapter.onFindBlock(block);
+                    Block block = ((MsgBlock) message).getBlock();
+                    block.getBody().iterator(iMerkleNode -> {
+                        AuthorizationInfo info =((AuthorizationInfo)iMerkleNode);
+                        transactions.removeTransaction(info.getId());
+                    });
+                }
             }
+
         }
 
         if(message instanceof MsgTransaction){

@@ -33,6 +33,7 @@ public class TransactionStore {
     public synchronized boolean removeTransaction(String id){
         return transactions.removeIf((transaction)->{
             return transaction.getId().equals(id);
+
         });
     }
 
