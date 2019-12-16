@@ -33,7 +33,7 @@ public class ConnectionListener implements ChannelFutureListener {
                 }
             }, 1L, TimeUnit.SECONDS);
         } else {
-            System.out.println("服务端链接成功...");
+            System.out.println("服务端链接成功");
             System.out.println("ip:"+ip+"---"+"port:"+port);
         }
     }
