@@ -12,6 +12,9 @@ repositories {
 }
 
 dependencies {
+    // https://mvnrepository.com/artifact/org.bouncycastle/bcprov-jdk15on
+    compile group: 'org.bouncycastle', name: 'bcprov-jdk15on', version: '1.64'
+
     compile group: 'org.eclipse.jetty', name: 'jetty-server', version: '9.4.24.v20191120'
     compile group: 'com.sun.jersey', name: 'jersey-servlet', version: '1.19.4'
     compile group: 'com.sun.jersey', name: 'jersey-json', version: '1.19.4'

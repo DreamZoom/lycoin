@@ -128,6 +128,7 @@ public class MainApplication {
                     System.out.println("response peers");
                     List<Peer> list =new ArrayList<>();
                     clientNode.getSources().forEach((s)->{
+                        System.out.println("response peer ip:"+s.getIp());
                         list.add(new Peer(s.host,s.port));
                     });
                     Message msg =new MsgPeers(list);
@@ -135,14 +136,18 @@ public class MainApplication {
                     clientNode.send(source,msg);
                 }
                 else if(message instanceof MsgPeers){
+                    System.out.println("**********************************");
+                    System.out.println("i get peers ");
                     List<Peer> peers = ((MsgPeers) message).getPeers();
                     for (int i = 0; i <peers.size() ; i++) {
                         Peer peer =peers.get(i);
+                        System.out.println("peer ip:"+peer.getIp());
                         if(peer.getIp().equals(config.getIp())){
                             continue;
                         }
                         clientNode.connectSource(new BraftNettyNode(peer.getIp(),peer.getServerPort()));
                     }
+                    System.out.println("**********************************");
                 }
                 else {
                     miner.handle(source,message);

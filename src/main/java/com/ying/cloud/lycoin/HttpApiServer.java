@@ -53,12 +53,13 @@ public class HttpApiServer {
         Server server = new Server(port);
         server.setAttribute("org.eclipse.jetty.server.Request.maxFormContentSize",-1);
         server.setAttribute("org.eclipse.jetty.LEVEL","INFO");
-
+        server.setAttribute("encoding","UTF-8");
+        server.setAttribute("forceEncoding","true");
         Handler handler =new AbstractHandler() {
             @Override
             public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
                 String action = request.getParameter("action");
-
+                response.addHeader("content-type","text/html; charset=utf-8");
                 if("auth".equals(action)){
 
                     try{
@@ -76,6 +77,7 @@ public class HttpApiServer {
 
                 if("blocks".equals(action)){
                     Gson gson=new Gson();
+
                     response.getWriter().write(gson.toJson(miner.getChain().getBlocks()));
                 }
 
